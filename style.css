@@ -1,13 +1,16 @@
 :root {
-  --ink: #0A0E14;
-  --panel: #12181F;
-  --panel-2: #171E27;
-  --line: #232B36;
-  --text: #E7ECF2;
-  --text-dim: #8A95A3;
-  --gold: #E3B341;       /* Соёмбын алт өнгө */
-  --gain: #35C98C;
-  --loss: #F0576A;
+  --bg: #F5F7FA;
+  --panel: #FFFFFF;
+  --panel-2: #EEF1F5;
+  --line: #E3E7EE;
+  --text: #12161F;
+  --text-dim: #667085;
+  --gold: #B8862B;       /* Соёмбын алт өнгө, цайвар дэвсгэр дээр уншигдахуйц гүнзгийрүүлсэн */
+  --gold-tint: rgba(184, 134, 43, 0.10);
+  --gain: #12946B;
+  --gain-tint: rgba(18, 148, 107, 0.10);
+  --loss: #D0304B;
+  --loss-tint: rgba(208, 48, 75, 0.09);
   --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
   --sans: "Segoe UI", ui-sans-serif, system-ui, -apple-system, Roboto, Arial, sans-serif;
 }
@@ -16,7 +19,11 @@
 
 body {
   margin: 0;
-  background: var(--ink);
+  background-color: var(--bg);
+  background-image: url("bg-pattern.svg");
+  background-repeat: repeat;
+  background-attachment: fixed;
+  background-size: 600px 300px;
   color: var(--text);
   font-family: var(--sans);
   min-height: 100vh;
@@ -83,7 +90,7 @@ body {
   padding: 72px 24px 40px;
   position: relative;
   background-image:
-    linear-gradient(var(--ink) 0, transparent 120px),
+    linear-gradient(var(--bg) 0, transparent 120px),
     repeating-linear-gradient(0deg, var(--line) 0, var(--line) 1px, transparent 1px, transparent 40px);
   background-position: 0 0;
 }
@@ -116,7 +123,7 @@ body {
   border-radius: 10px;
   outline: none;
 }
-.search-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(227,179,65,0.15); }
+.search-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-tint); }
 .suggestions {
   display: none;
   position: absolute;
@@ -187,7 +194,7 @@ body {
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 24px;
-  box-shadow: 0 20px 40px -20px rgba(0,0,0,0.5);
+  box-shadow: 0 12px 32px -16px rgba(18,22,31,0.12);
   animation: card-in 0.25s ease;
 }
 @keyframes card-in {
@@ -205,8 +212,8 @@ body {
   font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
   padding: 5px 10px; border-radius: 6px;
 }
-.badge.live { background: rgba(53,201,140,0.15); color: var(--gain); }
-.badge.demo { background: rgba(227,179,65,0.15); color: var(--gold); }
+.badge.live { background: var(--gain-tint); color: var(--gain); }
+.badge.demo { background: var(--gold-tint); color: var(--gold); }
 
 .chart-wrap { margin: 20px 0 8px; }
 .sparkline { width: 100%; height: 140px; }
@@ -221,8 +228,8 @@ body {
 .stat-val { font-family: var(--mono); font-size: 14px; }
 
 .notice {
-  background: rgba(227,179,65,0.08);
-  border: 1px solid rgba(227,179,65,0.25);
+  background: var(--gold-tint);
+  border: 1px solid rgba(184,134,43,0.30);
   color: var(--gold);
   font-size: 13px;
   padding: 12px 14px;
