@@ -128,26 +128,41 @@ async function renderCrypto(asset) {
   }
 }
 
-// ---------- Хувьцааны demo карт ----------
-function renderStockDemo(asset) {
-  const up = asset.demoChange >= 0;
-  resultArea.innerHTML = `
-    <div class="asset-card">
-      <div class="asset-head">
-        <div>
-          <div class="asset-ticker">${asset.ticker} <span class="asset-name">${asset.names[0]}</span></div>
-          <div class="asset-price">${fmtUSD(asset.demoPrice)}
-            <span class="chg ${up ? "up" : "down"}">${fmtPct(asset.demoChange)} (24ц)</span>
+// ---------- Хувьцааны карт (Finnhub-с /api/quote дамжуулан live) ----------
+async function renderStockDemo(asset) {
+  resultArea.innerHTML = `<div class="loading">Мэдээлэл татаж байна...</div>`;
+  try {
+    const res = await fetch(`/api/quote?symbol=${encodeURIComponent(asset.ticker)}`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      resultArea.innerHTML = `<div class="error-state">${data.error || "Мэдээлэл татахад алдаа гарлаа"}</div>`;
+      return;
+    }
+
+    const up = data.percent >= 0;
+    resultArea.innerHTML = `
+      <div class="asset-card">
+        <div class="asset-head">
+          <div>
+            <div class="asset-ticker">${data.symbol} <span class="asset-name">${asset.names[0]}</span></div>
+            <div class="asset-price">${fmtUSD(data.current)}
+              <span class="chg ${up ? "up" : "down"}">${fmtPct(data.percent)} (өдрийн)</span>
+            </div>
           </div>
+          <div class="badge live">● LIVE</div>
         </div>
-        <div class="badge demo">DEMO ӨГӨГДӨЛ</div>
-      </div>
-      <div class="notice">
-        Хувьцааны live үнийг харуулахын тулд Finnhub (үнэгүй) API түлхүүр холбоно.
-        Одоогоор жишээ (demo) тоо харуулж байна.
-      </div>
-      ${newsBlock(asset.ticker)}
-    </div>`;
+        <div class="stat-grid">
+          <div class="stat"><span class="stat-label">Нээлтийн үнэ</span><span class="stat-val">${fmtUSD(data.open)}</span></div>
+          <div class="stat"><span class="stat-label">Өдрийн дээд</span><span class="stat-val">${fmtUSD(data.high)}</span></div>
+          <div class="stat"><span class="stat-label">Өдрийн доод</span><span class="stat-val">${fmtUSD(data.low)}</span></div>
+          <div class="stat"><span class="stat-label">Өмнөх хаалт</span><span class="stat-val">${fmtUSD(data.prevClose)}</span></div>
+        </div>
+        ${newsBlock(asset.ticker)}
+      </div>`;
+  } catch (e) {
+    resultArea.innerHTML = `<div class="error-state">Мэдээлэл татахад алдаа гарлаа. Дахин оролдоно уу.</div>`;
+  }
 }
 
 // ---------- SVG sparkline график ----------
