@@ -18,6 +18,19 @@ async function loadTickerTape() {
     }).join("");
     // давхардуулж тавьснаар тасралтгүй гүйнэ
     track.innerHTML = items + items;
+
+    // Hero хэсгийн live mini-stat мөр (эхний 3-ыг харуулна)
+    const strip = document.getElementById("heroStrip");
+    if (strip) {
+      strip.innerHTML = data.slice(0, 3).map(c => {
+        const up = c.price_change_percentage_24h >= 0;
+        return `<div class="hero-stat">
+          <span class="hero-stat-sym">${c.symbol.toUpperCase()}</span>
+          <span class="hero-stat-price">${fmtUSD(c.current_price)}</span>
+          <span class="hero-stat-chg ${up ? "up" : "down"}">${fmtPct(c.price_change_percentage_24h || 0)}</span>
+        </div>`;
+      }).join("");
+    }
   } catch (e) {
     document.getElementById("tickerTrack").innerHTML =
       `<span class="tape-item">Мэдээлэл татахад алдаа гарлаа — интернэт холболтоо шалгана уу.</span>`;
