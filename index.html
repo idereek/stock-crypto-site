@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Зоос — Хувьцаа, крипто мэдээллийн терминал</title>
+<meta name="description" content="Хувьцаа, крипто, ханшийн live мэдээлэл — 100% Монгол хэлээр">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="ticker-tape" aria-hidden="true">
+  <div class="ticker-track" id="tickerTrack"></div>
+</div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">◈</span>
+    <span class="brand-name">ЗООС</span>
+  </div>
+  <nav class="topnav">
+    <a href="#" class="nav-link active">Терминал</a>
+    <a href="#" class="nav-link">Мэдээ</a>
+    <a href="#" class="nav-link">Watchlist</a>
+  </nav>
+  <button class="btn-upgrade" id="upgradeBtn">Trial: 2 өдөр үлдлээ</button>
+</header>
+
+<main>
+  <section class="hero">
+    <p class="eyebrow">Ticker эсвэл нэрээр хайх — жишээ: AAPL, Apple, Bitcoin, BTC, Tesla</p>
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="searchInput" class="search-input" placeholder="Хайх..." autocomplete="off">
+      <div id="suggestions" class="suggestions"></div>
+    </div>
+  </section>
+
+  <section id="resultArea" class="result-area">
+    <div class="empty-state">
+      <div class="empty-glyph">◈</div>
+      <p>Дээрх талбарт ticker буюу компанийн нэрээ бичээд хайлт хийнэ үү.</p>
+      <div class="quick-picks">
+        <button class="chip" data-q="BTC">₿ Bitcoin</button>
+        <button class="chip" data-q="ETH">Ξ Ethereum</button>
+        <button class="chip" data-q="AAPL">Apple</button>
+        <button class="chip" data-q="TSLA">Tesla</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="sitefooter">
+  <span>© 2026 Зоос — Монгол хэл дээрх санхүүгийн терминал</span>
+</footer>
+
+<script src="data.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
