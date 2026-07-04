@@ -121,8 +121,9 @@ async function renderCrypto(asset) {
           <div class="stat"><span class="stat-label">7 хоногийн дээд</span><span class="stat-val">${fmtUSD(Math.max(...prices))}</span></div>
           <div class="stat"><span class="stat-label">7 хоногийн доод</span><span class="stat-val">${fmtUSD(Math.min(...prices))}</span></div>
         </div>
-        ${newsBlock(asset.ticker)}
+        ${newsPlaceholder()}
       </div>`;
+    loadNews(asset.ticker, "crypto");
   } catch (e) {
     resultArea.innerHTML = `<div class="error-state">Мэдээлэл татахад алдаа гарлаа. Дахин оролдоно уу.</div>`;
   }
@@ -158,8 +159,9 @@ async function renderStockDemo(asset) {
           <div class="stat"><span class="stat-label">Өдрийн доод</span><span class="stat-val">${fmtUSD(data.low)}</span></div>
           <div class="stat"><span class="stat-label">Өмнөх хаалт</span><span class="stat-val">${fmtUSD(data.prevClose)}</span></div>
         </div>
-        ${newsBlock(asset.ticker)}
+        ${newsPlaceholder()}
       </div>`;
+    loadNews(asset.ticker, "stock");
   } catch (e) {
     resultArea.innerHTML = `<div class="error-state">Мэдээлэл татахад алдаа гарлаа. Дахин оролдоно уу.</div>`;
   }
@@ -186,23 +188,41 @@ function sparklineSVG(prices, up) {
     </div>`;
 }
 
-// ---------- Мэдээний жишээ блок (Монгол хэл дээр) ----------
-function newsBlock(ticker) {
-  const sample = [
-    { t: "Захын идэвх өндөр байна", s: "Зах зээлийн эргэлт өдрийн турш тогтмол өссөөр байна." },
-    { t: `${ticker}-тэй холбоотой сүүлийн үеийн шинжилгээ`, s: "Аналитикчид дунд хугацааны хэтийн төлөвийг эерэгээр үнэлж байна." },
-    { t: "Хэрэглэгчдийн анхаарах зүйл", s: "Богино хугацааны хэлбэлзэл нэмэгдэж болзошгүйг судлаачид анхааруулж байна." },
-  ];
-  return `
-    <div class="news-section">
+// ---------- Мэдээний placeholder ба live ачаалагч ----------
+function newsPlaceholder() {
+  return `<div class="news-section" id="newsSection">
+    <div class="news-title">Холбогдох мэдээ</div>
+    <div class="loading">Мэдээ ачаалж байна...</div>
+  </div>`;
+}
+
+async function loadNews(ticker, type) {
+  const section = document.getElementById("newsSection");
+  if (!section) return;
+  try {
+    const res = await fetch(`/api/news?symbol=${encodeURIComponent(ticker)}&type=${type}`);
+    const data = await res.json();
+
+    if (!res.ok || !data.items || !data.items.length) {
+      section.innerHTML = `
+        <div class="news-title">Холбогдох мэдээ</div>
+        <div class="news-empty">Одоогоор энэ ticker-тэй холбоотой шинэ мэдээ олдсонгүй.</div>`;
+      return;
+    }
+
+    section.innerHTML = `
       <div class="news-title">Холбогдох мэдээ</div>
-      ${sample.map(n => `
-        <div class="news-item">
-          <div class="news-headline">${n.t}</div>
-          <div class="news-sub">${n.s}</div>
-        </div>`).join("")}
-      <div class="news-footnote">* Жишээ мэдээ — production дээр мэдээний API холбож, Монгол хэл рүү орчуулах хэсэг нэмнэ.</div>
-    </div>`;
+      ${data.items.map(n => `
+        <a class="news-item" href="${n.url}" target="_blank" rel="noopener noreferrer">
+          <div class="news-headline">${n.headline}</div>
+          <div class="news-sub">${n.summary}</div>
+        </a>`).join("")}
+      <div class="news-footnote">* Эх сурвалж: Finnhub / CryptoCompare — Монгол орчуулга автоматаар хийгдсэн.</div>`;
+  } catch (e) {
+    section.innerHTML = `
+      <div class="news-title">Холбогдох мэдээ</div>
+      <div class="news-empty">Мэдээ татахад алдаа гарлаа.</div>`;
+  }
 }
 
 // ---------- Trial timer badge (жишээ логик) ----------

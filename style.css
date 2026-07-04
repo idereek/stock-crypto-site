@@ -239,8 +239,17 @@ body {
 
 .news-section { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
 .news-title { font-size: 13px; color: var(--text-dim); margin-bottom: 12px; letter-spacing: 0.4px; }
-.news-item { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.news-item {
+  display: block;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.15s ease;
+}
+.news-item:hover { opacity: 0.7; }
 .news-item:last-of-type { border-bottom: none; }
+.news-empty { color: var(--text-dim); font-size: 13px; padding: 6px 0; }
 .news-headline { font-size: 14px; font-weight: 600; }
 .news-sub { font-size: 13px; color: var(--text-dim); margin-top: 3px; }
 .news-footnote { font-size: 11px; color: var(--text-dim); margin-top: 10px; font-style: italic; }
