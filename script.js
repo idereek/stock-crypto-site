@@ -2,38 +2,41 @@
 const fmtUSD = (n) => "$" + Number(n).toLocaleString("en-US", { maximumFractionDigits: n < 1 ? 6 : 2 });
 const fmtPct = (n) => (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
 
-// ---------- Ticker tape (дээд талын гүйдэг мөр): крипто + хувьцаа + үнэт метал ----------
+// ---------- Ticker tape (дээд талын гүйдэг мөр): крипто + хувьцаа + түүхий эд ----------
 async function loadTickerTape() {
-  const cryptoIds = ["bitcoin", "ethereum", "solana", "binancecoin", "ripple", "dogecoin"];
-  const stockSymbols = ["AAPL", "TSLA", "NVDA"];
-
   let cryptoData = [];
   let stockItems = "";
   let metalItems = "";
+  let commodityItems = "";
 
-  // Крипто (CoinGecko)
+  // Крипто (CoinGecko) — лого зургийг API-с шууд авна
   try {
-    const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${cryptoIds.join(",")}`);
+    const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${TAPE_CRYPTO_IDS.join(",")}`);
     cryptoData = await res.json();
   } catch (e) { /* доор алдааны боловсруулалт хийнэ */ }
 
   const cryptoItems = cryptoData.map(c => {
     const up = c.price_change_percentage_24h >= 0;
     return `<span class="tape-item">
+      <img class="tape-logo" src="${c.image}" alt="" onerror="this.style.display='none'">
       <b>${c.symbol.toUpperCase()}</b> ${fmtUSD(c.current_price)}
       <span class="${up ? "up" : "down"}">${fmtPct(c.price_change_percentage_24h || 0)}</span>
     </span>`;
   }).join("");
 
-  // Хувьцаа (манай /api/quote, Finnhub-с)
+  // Хувьцаа (манай /api/quote, Finnhub-с) — Clearbit-с логог домайноор нь татна
   try {
     const results = await Promise.all(
-      stockSymbols.map(s => fetch(`/api/quote?symbol=${s}`).then(r => r.ok ? r.json() : null))
+      TAPE_STOCK_SYMBOLS.map(s => fetch(`/api/quote?symbol=${s}`).then(r => r.ok ? r.json() : null))
     );
     stockItems = results.filter(Boolean).map(d => {
+      const meta = ASSET_DB.find(a => a.ticker === d.symbol);
       const up = d.percent >= 0;
+      const logo = meta?.domain
+        ? `<img class="tape-logo" src="https://logo.clearbit.com/${meta.domain}" alt="" onerror="this.style.display='none'">`
+        : "";
       return `<span class="tape-item">
-        <b>${d.symbol}</b> ${fmtUSD(d.current)}
+        ${logo}<b>${d.symbol}</b> ${fmtUSD(d.current)}
         <span class="${up ? "up" : "down"}">${fmtPct(d.percent || 0)}</span>
       </span>`;
     }).join("");
@@ -48,13 +51,29 @@ async function loadTickerTape() {
     const gold = goldRes.ok ? await goldRes.json() : null;
     const silver = silverRes.ok ? await silverRes.json() : null;
     metalItems = [
-      gold ? `<span class="tape-item"><b>XAU (Алт)</b> ${fmtUSD(gold.price)}</span>` : "",
-      silver ? `<span class="tape-item"><b>XAG (Мөнгө)</b> ${fmtUSD(silver.price)}</span>` : "",
+      gold ? `<span class="tape-item">🥇 <b>Алт (XAU)</b> ${fmtUSD(gold.price)}</span>` : "",
+      silver ? `<span class="tape-item">🥈 <b>Мөнгө (XAG)</b> ${fmtUSD(silver.price)}</span>` : "",
     ].join("");
   } catch (e) { /* metals эх сурвалж ажиллахгүй бол зүгээр алгасна */ }
 
+  // Түүхий эд — ETF proxy-гоор, Finnhub-с
+  try {
+    const results = await Promise.all(
+      TAPE_COMMODITIES.map(c => fetch(`/api/quote?symbol=${c.symbol}`).then(r => r.ok ? r.json() : null))
+    );
+    commodityItems = results.map((d, i) => {
+      if (!d) return "";
+      const meta = TAPE_COMMODITIES[i];
+      const up = d.percent >= 0;
+      return `<span class="tape-item">
+        ${meta.icon} <b>${meta.label}</b> ${fmtUSD(d.current)}
+        <span class="${up ? "up" : "down"}">${fmtPct(d.percent || 0)}</span>
+      </span>`;
+    }).join("");
+  } catch (e) { /* commodity дата авахад алдаа гарвал зүгээр алгасна */ }
+
   const track = document.getElementById("tickerTrack");
-  const allItems = cryptoItems + stockItems + metalItems;
+  const allItems = cryptoItems + stockItems + metalItems + commodityItems;
   if (!allItems) {
     track.innerHTML = `<span class="tape-item">Мэдээлэл татахад алдаа гарлаа — интернэт холболтоо шалгана уу.</span>`;
     return;
@@ -169,15 +188,15 @@ async function renderCrypto(asset) {
           <div>
             <div class="asset-ticker">${marketData.symbol.toUpperCase()} <span class="asset-name">${marketData.name}</span></div>
             <div class="asset-price">${fmtUSD(marketData.current_price)}
-              <span class="chg ${up ? "up" : "down"}">${fmtPct(marketData.price_change_percentage_24h || 0)} (24ц)</span>
+              <span class="chg ${up ? "up" : "down"}">${fmtPct(marketData.price_change_percentage_24h || 0)} (сүүлийн 24 цагт)</span>
             </div>
           </div>
-          <div class="badge live">● LIVE</div>
+          <div class="badge live"><span class="live-dot"></span>LIVE</div>
         </div>
         ${tradingViewChart(asset)}
         <div class="stat-grid">
-          <div class="stat"><span class="stat-label">Захын үнэлгээ</span><span class="stat-val">${fmtUSD(marketData.market_cap)}</span></div>
-          <div class="stat"><span class="stat-label">24ц эргэлт</span><span class="stat-val">${fmtUSD(marketData.total_volume)}</span></div>
+          <div class="stat"><span class="stat-label">Койны нийт үнэ (бүх ширхэг × ханш)</span><span class="stat-val">${fmtUSD(marketData.market_cap)}</span></div>
+          <div class="stat"><span class="stat-label">24 цагийн худалдааны хэмжээ</span><span class="stat-val">${fmtUSD(marketData.total_volume)}</span></div>
           <div class="stat"><span class="stat-label">7 хоногийн дээд</span><span class="stat-val">${fmtUSD(Math.max(...prices))}</span></div>
           <div class="stat"><span class="stat-label">7 хоногийн доод</span><span class="stat-val">${fmtUSD(Math.min(...prices))}</span></div>
         </div>
@@ -211,7 +230,7 @@ async function renderStockDemo(asset) {
               <span class="chg ${up ? "up" : "down"}">${fmtPct(data.percent)} (өдрийн)</span>
             </div>
           </div>
-          <div class="badge live">● LIVE</div>
+          <div class="badge live"><span class="live-dot"></span>LIVE</div>
         </div>
         ${tradingViewChart(asset)}
         <div class="stat-grid">
@@ -293,7 +312,7 @@ async function loadNews(ticker, type) {
 })();
 
 loadTickerTape();
-setInterval(loadTickerTape, 60000); // минут тутам шинэчилнэ
+setInterval(loadTickerTape, 180000); // 3 минут тутам (Finnhub-ийн үнэгүй хязгаарыг хамгаалах зорилгоор)
 
 loadIndicesBoxes();
-setInterval(loadIndicesBoxes, 60000);
+setInterval(loadIndicesBoxes, 180000);

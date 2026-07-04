@@ -55,6 +55,7 @@ body {
   .ticker-track { animation: none; }
   .asset-card { animation: none; }
   .chip { transition: none; }
+  .live-dot { animation: none; }
 }
 
 /* ---------- Topbar ---------- */
@@ -252,10 +253,39 @@ body {
 .chg.down { color: var(--loss); }
 .badge {
   font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
-  padding: 5px 10px; border-radius: 6px;
+  padding: 5px 10px; border-radius: 20px;
 }
-.badge.live { background: var(--gain-tint); color: var(--gain); }
+.badge.live {
+  background: #FFFFFF;
+  color: var(--loss);
+  border: 1.5px solid var(--loss);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 10px;
+}
+.live-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--loss);
+  flex-shrink: 0;
+  animation: live-pulse 1.3s ease-in-out infinite;
+}
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(1.35); }
+}
 .badge.demo { background: var(--gold-tint); color: var(--gold); }
+
+.tape-logo {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-right: 4px;
+  object-fit: contain;
+}
 
 .tv-chart-wrap {
   margin: 20px 0 8px;
