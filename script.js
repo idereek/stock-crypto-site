@@ -2,39 +2,99 @@
 const fmtUSD = (n) => "$" + Number(n).toLocaleString("en-US", { maximumFractionDigits: n < 1 ? 6 : 2 });
 const fmtPct = (n) => (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
 
-// ---------- Ticker tape (дээд талын гүйдэг мөр) ----------
+// ---------- Ticker tape (дээд талын гүйдэг мөр): крипто + хувьцаа + үнэт метал ----------
 async function loadTickerTape() {
-  const ids = ["bitcoin", "ethereum", "solana", "binancecoin", "ripple", "dogecoin"];
+  const cryptoIds = ["bitcoin", "ethereum", "solana", "binancecoin", "ripple", "dogecoin"];
+  const stockSymbols = ["AAPL", "TSLA", "NVDA"];
+
+  let cryptoData = [];
+  let stockItems = "";
+  let metalItems = "";
+
+  // Крипто (CoinGecko)
   try {
-    const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids.join(",")}`);
-    const data = await res.json();
-    const track = document.getElementById("tickerTrack");
-    const items = data.map(c => {
-      const up = c.price_change_percentage_24h >= 0;
+    const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${cryptoIds.join(",")}`);
+    cryptoData = await res.json();
+  } catch (e) { /* доор алдааны боловсруулалт хийнэ */ }
+
+  const cryptoItems = cryptoData.map(c => {
+    const up = c.price_change_percentage_24h >= 0;
+    return `<span class="tape-item">
+      <b>${c.symbol.toUpperCase()}</b> ${fmtUSD(c.current_price)}
+      <span class="${up ? "up" : "down"}">${fmtPct(c.price_change_percentage_24h || 0)}</span>
+    </span>`;
+  }).join("");
+
+  // Хувьцаа (манай /api/quote, Finnhub-с)
+  try {
+    const results = await Promise.all(
+      stockSymbols.map(s => fetch(`/api/quote?symbol=${s}`).then(r => r.ok ? r.json() : null))
+    );
+    stockItems = results.filter(Boolean).map(d => {
+      const up = d.percent >= 0;
       return `<span class="tape-item">
-        <b>${c.symbol.toUpperCase()}</b> ${fmtUSD(c.current_price)}
-        <span class="${up ? "up" : "down"}">${fmtPct(c.price_change_percentage_24h || 0)}</span>
+        <b>${d.symbol}</b> ${fmtUSD(d.current)}
+        <span class="${up ? "up" : "down"}">${fmtPct(d.percent || 0)}</span>
       </span>`;
     }).join("");
-    // давхардуулж тавьснаар тасралтгүй гүйнэ
-    track.innerHTML = items + items;
+  } catch (e) { /* хувьцааны дата авахад алдаа гарвал зүгээр алгасна */ }
 
-    // Hero хэсгийн live mini-stat мөр (эхний 3-ыг харуулна)
-    const strip = document.getElementById("heroStrip");
-    if (strip) {
-      strip.innerHTML = data.slice(0, 3).map(c => {
-        const up = c.price_change_percentage_24h >= 0;
-        return `<div class="hero-stat">
-          <span class="hero-stat-sym">${c.symbol.toUpperCase()}</span>
-          <span class="hero-stat-price">${fmtUSD(c.current_price)}</span>
-          <span class="hero-stat-chg ${up ? "up" : "down"}">${fmtPct(c.price_change_percentage_24h || 0)}</span>
-        </div>`;
-      }).join("");
-    }
-  } catch (e) {
-    document.getElementById("tickerTrack").innerHTML =
-      `<span class="tape-item">Мэдээлэл татахад алдаа гарлаа — интернэт холболтоо шалгана уу.</span>`;
+  // Алт / мөнгө (key шаардахгүй нээлттэй эх сурвалж — үйлчилгээ өөрчлөгдвөл автоматаар алгасна)
+  try {
+    const [goldRes, silverRes] = await Promise.all([
+      fetch("https://api.gold-api.com/price/XAU"),
+      fetch("https://api.gold-api.com/price/XAG"),
+    ]);
+    const gold = goldRes.ok ? await goldRes.json() : null;
+    const silver = silverRes.ok ? await silverRes.json() : null;
+    metalItems = [
+      gold ? `<span class="tape-item"><b>XAU (Алт)</b> ${fmtUSD(gold.price)}</span>` : "",
+      silver ? `<span class="tape-item"><b>XAG (Мөнгө)</b> ${fmtUSD(silver.price)}</span>` : "",
+    ].join("");
+  } catch (e) { /* metals эх сурвалж ажиллахгүй бол зүгээр алгасна */ }
+
+  const track = document.getElementById("tickerTrack");
+  const allItems = cryptoItems + stockItems + metalItems;
+  if (!allItems) {
+    track.innerHTML = `<span class="tape-item">Мэдээлэл татахад алдаа гарлаа — интернэт холболтоо шалгана уу.</span>`;
+    return;
   }
+  // давхардуулж тавьснаар тасралтгүй гүйнэ
+  track.innerHTML = allItems + allItems;
+
+  // Hero хэсгийн live mini-stat мөр (эхний 3 криптог харуулна)
+  const strip = document.getElementById("heroStrip");
+  if (strip && cryptoData.length) {
+    strip.innerHTML = cryptoData.slice(0, 3).map(c => {
+      const up = c.price_change_percentage_24h >= 0;
+      return `<div class="hero-stat">
+        <span class="hero-stat-sym">${c.symbol.toUpperCase()}</span>
+        <span class="hero-stat-price">${fmtUSD(c.current_price)}</span>
+        <span class="hero-stat-chg ${up ? "up" : "down"}">${fmtPct(c.price_change_percentage_24h || 0)}</span>
+      </div>`;
+    }).join("");
+  }
+}
+
+// ---------- Дэлхийн зах зээлийн index box-ууд (ETF proxy-гоор, TradingView-гүй) ----------
+async function loadIndicesBoxes() {
+  const boxes = document.querySelectorAll("#indicesGrid .index-box");
+  await Promise.all(Array.from(boxes).map(async (box) => {
+    const symbol = box.dataset.symbol;
+    try {
+      const res = await fetch(`/api/quote?symbol=${symbol}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error();
+      const up = data.percent >= 0;
+      box.querySelector(".index-price").textContent = fmtUSD(data.current);
+      const chg = box.querySelector(".index-chg");
+      chg.textContent = fmtPct(data.percent || 0);
+      chg.classList.add(up ? "up" : "down");
+    } catch (e) {
+      box.querySelector(".index-price").textContent = "—";
+      box.querySelector(".index-chg").textContent = "алдаа";
+    }
+  }));
 }
 
 // ---------- Хайлтын санал ----------
@@ -234,3 +294,6 @@ async function loadNews(ticker, type) {
 
 loadTickerTape();
 setInterval(loadTickerTape, 60000); // минут тутам шинэчилнэ
+
+loadIndicesBoxes();
+setInterval(loadIndicesBoxes, 60000);

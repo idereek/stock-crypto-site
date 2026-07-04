@@ -190,13 +190,21 @@ body {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 10px 12px 12px;
-}
-.index-label {
+  padding: 16px;
   text-align: center;
-  font-size: 12px;
+}
+.index-name { font-size: 13px; font-weight: 600; }
+.index-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+.index-price { font-family: var(--mono); font-size: 18px; margin-top: 10px; }
+.index-chg { font-family: var(--mono); font-size: 13px; margin-top: 2px; }
+.index-chg.up { color: var(--gain); }
+.index-chg.down { color: var(--loss); }
+.indices-note {
+  text-align: center;
+  font-size: 11px;
   color: var(--text-dim);
-  margin-top: 4px;
+  margin-top: 10px;
+  font-style: italic;
 }
 @media (max-width: 780px) {
   .indices-grid { grid-template-columns: repeat(2, 1fr); }
