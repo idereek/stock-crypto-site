@@ -245,6 +245,18 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 .asset-head { display: flex; justify-content: space-between; align-items: flex-start; }
+.asset-head-left { display: flex; align-items: flex-start; gap: 14px; }
+.asset-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
+  object-fit: contain;
+  background: #FFFFFF;
+  border: 1px solid var(--line);
+  flex-shrink: 0;
+  margin-top: 2px;
+  padding: 4px;
+}
 .asset-ticker { font-family: var(--mono); font-size: 20px; font-weight: 700; }
 .asset-name { font-family: var(--sans); font-weight: 400; color: var(--text-dim); font-size: 14px; margin-left: 8px; }
 .asset-price { font-family: var(--mono); font-size: 32px; margin-top: 6px; }
@@ -263,6 +275,8 @@ body {
   align-items: center;
   gap: 6px;
   padding: 5px 12px 5px 10px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
 }
 .live-dot {
   width: 9px;
@@ -270,11 +284,12 @@ body {
   border-radius: 50%;
   background: var(--loss);
   flex-shrink: 0;
-  animation: live-pulse 1.3s ease-in-out infinite;
+  animation: live-pulse 1s steps(1, end) infinite;
 }
+/* Цэвэр асаж/унтардаг анивчилт (recording indicator шиг) — сарних/томрох эффект байхгүй */
 @keyframes live-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.45; transform: scale(1.35); }
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.25; }
 }
 .badge.demo { background: var(--gold-tint); color: var(--gold); }
 

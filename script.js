@@ -2,6 +2,27 @@
 const fmtUSD = (n) => "$" + Number(n).toLocaleString("en-US", { maximumFractionDigits: n < 1 ? 6 : 2 });
 const fmtPct = (n) => (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
 
+// ---------- Finnhub квот-той (60 req/мин, хуваалцсан key) харилцахдаа бөөнөөрөө биш,
+// жижиг багцаар saataitai дуудаж, "burst" болж татгалзуулахаас сэргийлнэ ----------
+async function fetchQuotesBatched(symbols, batchSize = 4, delayMs = 300) {
+  const out = [];
+  for (let i = 0; i < symbols.length; i += batchSize) {
+    const batch = symbols.slice(i, i + batchSize);
+    const batchResults = await Promise.all(
+      batch.map(s =>
+        fetch(`/api/quote?symbol=${encodeURIComponent(s)}`)
+          .then(r => (r.ok ? r.json() : null))
+          .catch(() => null)
+      )
+    );
+    out.push(...batchResults);
+    if (i + batchSize < symbols.length) {
+      await new Promise(r => setTimeout(r, delayMs));
+    }
+  }
+  return out;
+}
+
 // ---------- Ticker tape (дээд талын гүйдэг мөр): крипто + хувьцаа + түүхий эд ----------
 async function loadTickerTape() {
   let cryptoData = [];
@@ -25,10 +46,9 @@ async function loadTickerTape() {
   }).join("");
 
   // Хувьцаа (манай /api/quote, Finnhub-с) — Clearbit-с логог домайноор нь татна
+  // Анхаар: 20 ticker-ийг зэрэг биш, багцаар нь дуудна (Finnhub key хуваалцсан тул burst-с сэргийлнэ)
   try {
-    const results = await Promise.all(
-      TAPE_STOCK_SYMBOLS.map(s => fetch(`/api/quote?symbol=${s}`).then(r => r.ok ? r.json() : null))
-    );
+    const results = await fetchQuotesBatched(TAPE_STOCK_SYMBOLS, 4, 300);
     stockItems = results.filter(Boolean).map(d => {
       const meta = ASSET_DB.find(a => a.ticker === d.symbol);
       const up = d.percent >= 0;
@@ -56,11 +76,9 @@ async function loadTickerTape() {
     ].join("");
   } catch (e) { /* metals эх сурвалж ажиллахгүй бол зүгээр алгасна */ }
 
-  // Түүхий эд — ETF proxy-гоор, Finnhub-с
+  // Түүхий эд — ETF proxy-гоор, Finnhub-с (энэ ч бас багцаар)
   try {
-    const results = await Promise.all(
-      TAPE_COMMODITIES.map(c => fetch(`/api/quote?symbol=${c.symbol}`).then(r => r.ok ? r.json() : null))
-    );
+    const results = await fetchQuotesBatched(TAPE_COMMODITIES.map(c => c.symbol), 4, 300);
     commodityItems = results.map((d, i) => {
       if (!d) return "";
       const meta = TAPE_COMMODITIES[i];
@@ -81,6 +99,15 @@ async function loadTickerTape() {
   // давхардуулж тавьснаар тасралтгүй гүйнэ
   track.innerHTML = allItems + allItems;
 
+  // Item-ийн тоо өөрчлөгдөх бүрт animation duration тогтмол биш үлдвэл хурд өөрчлөгдчихдөг
+  // тул агуулгын өргөнөөс хамааруулж px/секундыг тогтмол барина (хуучин хурдтай ойролцоо: ~55px/сек)
+  requestAnimationFrame(() => {
+    const singleSetWidth = track.scrollWidth / 2;
+    const PX_PER_SECOND = 55;
+    const duration = Math.max(singleSetWidth / PX_PER_SECOND, 10);
+    track.style.animationDuration = `${duration}s`;
+  });
+
   // Hero хэсгийн live mini-stat мөр (эхний 3 криптог харуулна)
   const strip = document.getElementById("heroStrip");
   if (strip && cryptoData.length) {
@@ -97,23 +124,22 @@ async function loadTickerTape() {
 
 // ---------- Дэлхийн зах зээлийн index box-ууд (ETF proxy-гоор, TradingView-гүй) ----------
 async function loadIndicesBoxes() {
-  const boxes = document.querySelectorAll("#indicesGrid .index-box");
-  await Promise.all(Array.from(boxes).map(async (box) => {
-    const symbol = box.dataset.symbol;
-    try {
-      const res = await fetch(`/api/quote?symbol=${symbol}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error();
-      const up = data.percent >= 0;
-      box.querySelector(".index-price").textContent = fmtUSD(data.current);
-      const chg = box.querySelector(".index-chg");
-      chg.textContent = fmtPct(data.percent || 0);
-      chg.classList.add(up ? "up" : "down");
-    } catch (e) {
+  const boxes = Array.from(document.querySelectorAll("#indicesGrid .index-box"));
+  const symbols = boxes.map(b => b.dataset.symbol);
+  const results = await fetchQuotesBatched(symbols, 4, 300);
+  boxes.forEach((box, i) => {
+    const data = results[i];
+    if (!data) {
       box.querySelector(".index-price").textContent = "—";
       box.querySelector(".index-chg").textContent = "алдаа";
+      return;
     }
-  }));
+    const up = data.percent >= 0;
+    box.querySelector(".index-price").textContent = fmtUSD(data.current);
+    const chg = box.querySelector(".index-chg");
+    chg.textContent = fmtPct(data.percent || 0);
+    chg.classList.add(up ? "up" : "down");
+  });
 }
 
 // ---------- Хайлтын санал ----------
@@ -185,10 +211,13 @@ async function renderCrypto(asset) {
     resultArea.innerHTML = `
       <div class="asset-card">
         <div class="asset-head">
-          <div>
-            <div class="asset-ticker">${marketData.symbol.toUpperCase()} <span class="asset-name">${marketData.name}</span></div>
-            <div class="asset-price">${fmtUSD(marketData.current_price)}
-              <span class="chg ${up ? "up" : "down"}">${fmtPct(marketData.price_change_percentage_24h || 0)} (сүүлийн 24 цагт)</span>
+          <div class="asset-head-left">
+            <img class="asset-logo" src="${marketData.image}" alt="" onerror="this.style.display='none'">
+            <div>
+              <div class="asset-ticker">${marketData.symbol.toUpperCase()} <span class="asset-name">${marketData.name}</span></div>
+              <div class="asset-price">${fmtUSD(marketData.current_price)}
+                <span class="chg ${up ? "up" : "down"}">${fmtPct(marketData.price_change_percentage_24h || 0)} (сүүлийн 24 цагт)</span>
+              </div>
             </div>
           </div>
           <div class="badge live"><span class="live-dot"></span>LIVE</div>
@@ -224,10 +253,13 @@ async function renderStockDemo(asset) {
     resultArea.innerHTML = `
       <div class="asset-card">
         <div class="asset-head">
-          <div>
-            <div class="asset-ticker">${data.symbol} <span class="asset-name">${asset.names[0]}</span></div>
-            <div class="asset-price">${fmtUSD(data.current)}
-              <span class="chg ${up ? "up" : "down"}">${fmtPct(data.percent)} (өдрийн)</span>
+          <div class="asset-head-left">
+            ${asset.domain ? `<img class="asset-logo" src="https://logo.clearbit.com/${asset.domain}" alt="" onerror="this.style.display='none'">` : ""}
+            <div>
+              <div class="asset-ticker">${data.symbol} <span class="asset-name">${asset.names[0]}</span></div>
+              <div class="asset-price">${fmtUSD(data.current)}
+                <span class="chg ${up ? "up" : "down"}">${fmtPct(data.percent)} (өдрийн)</span>
+              </div>
             </div>
           </div>
           <div class="badge live"><span class="live-dot"></span>LIVE</div>
@@ -311,8 +343,11 @@ async function loadNews(ticker, type) {
   });
 })();
 
-loadTickerTape();
-setInterval(loadTickerTape, 180000); // 3 минут тутам (Finnhub-ийн үнэгүй хязгаарыг хамгаалах зорилгоор)
-
-loadIndicesBoxes();
-setInterval(loadIndicesBoxes, 180000);
+// Ticker tape болон index box-уудыг зэрэг биш дараалалтай ачаална
+// (нэг Finnhub key-г бүх хэрэглэгч хуваалцдаг тул нэг мөчид хэт олон хүсэлт үүсэхгүйн тулд)
+async function refreshLiveData() {
+  await loadTickerTape();
+  await loadIndicesBoxes();
+}
+refreshLiveData();
+setInterval(refreshLiveData, 180000); // 3 минут тутам

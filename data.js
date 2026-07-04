@@ -85,9 +85,8 @@ const ASSET_DB = [
 
 // Ticker tape-д зориулсан богино жагсаалтууд (гүйдэг мөрөнд харуулах хэмжээ)
 const TAPE_CRYPTO_IDS = [
-  "bitcoin", "ethereum", "binancecoin", "solana", "ripple", "cardano", "dogecoin",
-  "tron", "avalanche-2", "chainlink", "polkadot", "matic-network", "litecoin",
-  "shiba-inu", "bitcoin-cash", "uniswap", "stellar", "monero", "aptos", "near",
+  "bitcoin", "ethereum", "binancecoin", "solana", "ripple",
+  "cardano", "dogecoin", "tron", "avalanche-2", "chainlink",
 ];
 
 const TAPE_STOCK_SYMBOLS = [
