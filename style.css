@@ -168,6 +168,40 @@ body {
 .hero-stat-chg.up { color: var(--gain); }
 .hero-stat-chg.down { color: var(--loss); }
 
+.indices-section {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 8px 24px 12px;
+}
+.indices-heading {
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.indices-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.index-box {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px 12px;
+}
+.index-label {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+@media (max-width: 780px) {
+  .indices-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
 /* ---------- Result area ---------- */
 .result-area { max-width: 720px; margin: 0 auto; padding: 24px 24px 80px; }
 .empty-state { text-align: center; color: var(--text-dim); padding: 40px 0; }
