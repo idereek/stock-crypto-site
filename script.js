@@ -114,7 +114,7 @@ async function renderCrypto(asset) {
           </div>
           <div class="badge live">● LIVE</div>
         </div>
-        ${sparklineSVG(prices, up)}
+        ${tradingViewChart(asset)}
         <div class="stat-grid">
           <div class="stat"><span class="stat-label">Захын үнэлгээ</span><span class="stat-val">${fmtUSD(marketData.market_cap)}</span></div>
           <div class="stat"><span class="stat-label">24ц эргэлт</span><span class="stat-val">${fmtUSD(marketData.total_volume)}</span></div>
@@ -153,6 +153,7 @@ async function renderStockDemo(asset) {
           </div>
           <div class="badge live">● LIVE</div>
         </div>
+        ${tradingViewChart(asset)}
         <div class="stat-grid">
           <div class="stat"><span class="stat-label">Нээлтийн үнэ</span><span class="stat-val">${fmtUSD(data.open)}</span></div>
           <div class="stat"><span class="stat-label">Өдрийн дээд</span><span class="stat-val">${fmtUSD(data.high)}</span></div>
@@ -167,24 +168,22 @@ async function renderStockDemo(asset) {
   }
 }
 
-// ---------- SVG sparkline график ----------
-function sparklineSVG(prices, up) {
-  const w = 640, h = 160, pad = 8;
-  const min = Math.min(...prices), max = Math.max(...prices);
-  const range = (max - min) || 1;
-  const step = (w - pad * 2) / (prices.length - 1);
-  const points = prices.map((p, i) => {
-    const x = pad + i * step;
-    const y = h - pad - ((p - min) / range) * (h - pad * 2);
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  }).join(" ");
-  const color = up ? "var(--gain)" : "var(--loss)";
+// ---------- TradingView chart (crosshair/point курсор native дэмжигдсэн) ----------
+function tradingViewChart(asset) {
+  if (!asset.tv) {
+    return `<div class="notice">Энэ хөрөнгө нь ам.доллартай босоо тогтвортой ханшийг (stablecoin) баримталдаг тул график шаардлагагүй.</div>`;
+  }
+  const src = `https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(asset.tv)}&interval=D&hide_top_toolbar=1&hide_legend=0&saveimage=0&toolbarbg=F5F7FA&theme=light&style=1&locale=en&withdateranges=1`;
   return `
-    <div class="chart-wrap">
-      <svg viewBox="0 0 ${w} ${h}" class="sparkline" preserveAspectRatio="none">
-        <polyline points="${points}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-      </svg>
-      <div class="chart-caption">Сүүлийн 7 хоног</div>
+    <div class="tv-chart-wrap">
+      <iframe
+        src="${src}"
+        title="${asset.ticker} chart"
+        loading="lazy"
+        frameborder="0"
+        allowtransparency="true"
+        scrolling="no">
+      </iframe>
     </div>`;
 }
 
