@@ -11,6 +11,11 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: "symbol параметр дутуу байна" });
   }
 
+  // Ижил ticker-ийг олон хэрэглэгч зэрэг асуухад бүгд Finnhub рүү шууд явахгүй,
+  // Vercel-ийн CDN 60 секундын турш хариултыг кэшилж хуваалцана.
+  // Хэрэглэгчийн тоо нэмэгдэх тусам Finnhub руу очих бодит хүсэлтийн тоо ХЭВЭЭР үлдэнэ.
+  res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=30");
+
   const apiKey = process.env.FINNHUB_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: "Server дээр API key тохируулаагүй байна" });

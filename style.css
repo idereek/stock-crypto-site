@@ -73,6 +73,76 @@ body {
 .topnav { display: flex; gap: 28px; }
 .nav-link { color: var(--text-dim); text-decoration: none; font-size: 14px; }
 .nav-link.active { color: var(--text); border-bottom: 2px solid var(--gold); padding-bottom: 4px; }
+
+.topbar-actions { display: flex; align-items: center; gap: 14px; }
+
+/* ---------- Хэл сонгох (globe + MN/EN dropdown) ---------- */
+.lang-switcher { position: relative; }
+.lang-btn {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.lang-btn:hover { border-color: var(--gold); }
+.lang-globe { font-size: 14px; }
+.lang-caret { font-size: 10px; color: var(--text-dim); margin-left: 1px; }
+.lang-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 150px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  overflow: hidden;
+  z-index: 20;
+  box-shadow: 0 12px 28px -12px rgba(18,22,31,0.18);
+}
+.lang-menu.show { display: block; }
+.lang-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}
+.lang-option:hover { background: var(--panel-2); }
+.lang-option.active { color: var(--gold); font-weight: 700; }
+
+/* ---------- Login / Sign up ---------- */
+.auth-actions { display: flex; align-items: center; gap: 8px; }
+.btn-login {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 7px 6px;
+}
+.btn-login:hover { color: var(--text); }
+.btn-signup {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.btn-signup:hover { border-color: var(--gold); color: var(--gold); }
 .btn-upgrade {
   background: var(--gold);
   color: #1A1400;
@@ -355,4 +425,7 @@ body {
   .topnav { display: none; }
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
   .hero { padding: 40px 16px 24px; }
+  .topbar-actions { gap: 8px; }
+  .btn-login { display: none; }
+  .btn-upgrade { padding: 8px 10px; font-size: 12px; }
 }

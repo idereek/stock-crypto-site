@@ -93,7 +93,7 @@ async function loadTickerTape() {
   const track = document.getElementById("tickerTrack");
   const allItems = cryptoItems + stockItems + metalItems + commodityItems;
   if (!allItems) {
-    track.innerHTML = `<span class="tape-item">Мэдээлэл татахад алдаа гарлаа — интернэт холболтоо шалгана уу.</span>`;
+    track.innerHTML = `<span class="tape-item">${t("tape_loading_error")}</span>`;
     return;
   }
   // давхардуулж тавьснаар тасралтгүй гүйнэ
@@ -131,7 +131,7 @@ async function loadIndicesBoxes() {
     const data = results[i];
     if (!data) {
       box.querySelector(".index-price").textContent = "—";
-      box.querySelector(".index-chg").textContent = "алдаа";
+      box.querySelector(".index-chg").textContent = t("index_error");
       return;
     }
     const up = data.percent >= 0;
@@ -153,7 +153,7 @@ searchInput.addEventListener("input", () => {
   suggestions.innerHTML = matches.slice(0, 6).map(m =>
     `<div class="suggestion-item" data-ticker="${m.ticker}">
       <span class="s-ticker">${m.ticker}</span>
-      <span class="s-type">${m.type === "crypto" ? "Крипто" : "Хувьцаа"}</span>
+      <span class="s-type">${m.type === "crypto" ? t("type_crypto") : t("type_stock")}</span>
     </div>`
   ).join("");
   suggestions.classList.add("show");
@@ -187,7 +187,7 @@ async function runSearch(ticker) {
   const asset = ASSET_DB.find(a => a.ticker === ticker);
   if (!asset) return;
   searchInput.value = asset.ticker;
-  resultArea.innerHTML = `<div class="loading">Мэдээлэл татаж байна...</div>`;
+  resultArea.innerHTML = `<div class="loading">${t("loading")}</div>`;
 
   if (asset.type === "crypto") {
     await renderCrypto(asset);
@@ -216,7 +216,7 @@ async function renderCrypto(asset) {
             <div>
               <div class="asset-ticker">${marketData.symbol.toUpperCase()} <span class="asset-name">${marketData.name}</span></div>
               <div class="asset-price">${fmtUSD(marketData.current_price)}
-                <span class="chg ${up ? "up" : "down"}">${fmtPct(marketData.price_change_percentage_24h || 0)} (сүүлийн 24 цагт)</span>
+                <span class="chg ${up ? "up" : "down"}">${fmtPct(marketData.price_change_percentage_24h || 0)} ${t("chg_24h_suffix")}</span>
               </div>
             </div>
           </div>
@@ -224,28 +224,28 @@ async function renderCrypto(asset) {
         </div>
         ${tradingViewChart(asset)}
         <div class="stat-grid">
-          <div class="stat"><span class="stat-label">Койны нийт үнэ (бүх ширхэг × ханш)</span><span class="stat-val">${fmtUSD(marketData.market_cap)}</span></div>
-          <div class="stat"><span class="stat-label">24 цагийн худалдааны хэмжээ</span><span class="stat-val">${fmtUSD(marketData.total_volume)}</span></div>
-          <div class="stat"><span class="stat-label">7 хоногийн дээд</span><span class="stat-val">${fmtUSD(Math.max(...prices))}</span></div>
-          <div class="stat"><span class="stat-label">7 хоногийн доод</span><span class="stat-val">${fmtUSD(Math.min(...prices))}</span></div>
+          <div class="stat"><span class="stat-label">${t("stat_market_cap")}</span><span class="stat-val">${fmtUSD(marketData.market_cap)}</span></div>
+          <div class="stat"><span class="stat-label">${t("stat_volume_24h")}</span><span class="stat-val">${fmtUSD(marketData.total_volume)}</span></div>
+          <div class="stat"><span class="stat-label">${t("stat_week_high")}</span><span class="stat-val">${fmtUSD(Math.max(...prices))}</span></div>
+          <div class="stat"><span class="stat-label">${t("stat_week_low")}</span><span class="stat-val">${fmtUSD(Math.min(...prices))}</span></div>
         </div>
         ${newsPlaceholder()}
       </div>`;
     loadNews(asset.ticker, "crypto");
   } catch (e) {
-    resultArea.innerHTML = `<div class="error-state">Мэдээлэл татахад алдаа гарлаа. Дахин оролдоно уу.</div>`;
+    resultArea.innerHTML = `<div class="error-state">${t("error_state")}</div>`;
   }
 }
 
 // ---------- Хувьцааны карт (Finnhub-с /api/quote дамжуулан live) ----------
 async function renderStockDemo(asset) {
-  resultArea.innerHTML = `<div class="loading">Мэдээлэл татаж байна...</div>`;
+  resultArea.innerHTML = `<div class="loading">${t("loading")}</div>`;
   try {
     const res = await fetch(`/api/quote?symbol=${encodeURIComponent(asset.ticker)}`);
     const data = await res.json();
 
     if (!res.ok) {
-      resultArea.innerHTML = `<div class="error-state">${data.error || "Мэдээлэл татахад алдаа гарлаа"}</div>`;
+      resultArea.innerHTML = `<div class="error-state">${data.error || t("error_state")}</div>`;
       return;
     }
 
@@ -258,7 +258,7 @@ async function renderStockDemo(asset) {
             <div>
               <div class="asset-ticker">${data.symbol} <span class="asset-name">${asset.names[0]}</span></div>
               <div class="asset-price">${fmtUSD(data.current)}
-                <span class="chg ${up ? "up" : "down"}">${fmtPct(data.percent)} (өдрийн)</span>
+                <span class="chg ${up ? "up" : "down"}">${fmtPct(data.percent)} ${t("chg_today_suffix")}</span>
               </div>
             </div>
           </div>
@@ -266,24 +266,25 @@ async function renderStockDemo(asset) {
         </div>
         ${tradingViewChart(asset)}
         <div class="stat-grid">
-          <div class="stat"><span class="stat-label">Нээлтийн үнэ</span><span class="stat-val">${fmtUSD(data.open)}</span></div>
-          <div class="stat"><span class="stat-label">Өдрийн дээд</span><span class="stat-val">${fmtUSD(data.high)}</span></div>
-          <div class="stat"><span class="stat-label">Өдрийн доод</span><span class="stat-val">${fmtUSD(data.low)}</span></div>
-          <div class="stat"><span class="stat-label">Өмнөх хаалт</span><span class="stat-val">${fmtUSD(data.prevClose)}</span></div>
+          <div class="stat"><span class="stat-label">${t("stat_open")}</span><span class="stat-val">${fmtUSD(data.open)}</span></div>
+          <div class="stat"><span class="stat-label">${t("stat_day_high")}</span><span class="stat-val">${fmtUSD(data.high)}</span></div>
+          <div class="stat"><span class="stat-label">${t("stat_day_low")}</span><span class="stat-val">${fmtUSD(data.low)}</span></div>
+          <div class="stat"><span class="stat-label">${t("stat_prev_close")}</span><span class="stat-val">${fmtUSD(data.prevClose)}</span></div>
         </div>
         ${newsPlaceholder()}
       </div>`;
     loadNews(asset.ticker, "stock");
   } catch (e) {
-    resultArea.innerHTML = `<div class="error-state">Мэдээлэл татахад алдаа гарлаа. Дахин оролдоно уу.</div>`;
+    resultArea.innerHTML = `<div class="error-state">${t("error_state")}</div>`;
   }
 }
 
 // ---------- TradingView chart (crosshair/point курсор native дэмжигдсэн) ----------
 function tradingViewChart(asset) {
   if (!asset.tv) {
-    return `<div class="notice">Энэ хөрөнгө нь ам.доллартай босоо тогтвортой ханшийг (stablecoin) баримталдаг тул график шаардлагагүй.</div>`;
+    return `<div class="notice">${t("stablecoin_notice")}</div>`;
   }
+  // TradingView-д Монгол locale байхгүй тул аль ч тохиолдолд Англи UI-тай (data өөрөө хэлнээс үл хамааран LIVE)
   const src = `https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(asset.tv)}&interval=D&hide_top_toolbar=1&hide_legend=0&saveimage=0&toolbarbg=F5F7FA&theme=light&style=1&locale=en&withdateranges=1`;
   return `
     <div class="tv-chart-wrap">
@@ -301,47 +302,69 @@ function tradingViewChart(asset) {
 // ---------- Мэдээний placeholder ба live ачаалагч ----------
 function newsPlaceholder() {
   return `<div class="news-section" id="newsSection">
-    <div class="news-title">Холбогдох мэдээ</div>
-    <div class="loading">Мэдээ ачаалж байна...</div>
+    <div class="news-title">${t("news_title")}</div>
+    <div class="loading">${t("news_loading")}</div>
   </div>`;
 }
 
 async function loadNews(ticker, type) {
   const section = document.getElementById("newsSection");
   if (!section) return;
+  const lang = getLang();
   try {
-    const res = await fetch(`/api/news?symbol=${encodeURIComponent(ticker)}&type=${type}`);
+    // EN сонгосон бол сервер рүү lang=en дамжуулж, Монгол орчуулгын алхмыг алгасуулна
+    // (энэ нь MyMemory API-ийн өдрийн хязгаарыг ч хамгаална).
+    const res = await fetch(`/api/news?symbol=${encodeURIComponent(ticker)}&type=${type}&lang=${lang}`);
     const data = await res.json();
 
     if (!res.ok || !data.items || !data.items.length) {
       section.innerHTML = `
-        <div class="news-title">Холбогдох мэдээ</div>
-        <div class="news-empty">Одоогоор энэ ticker-тэй холбоотой шинэ мэдээ олдсонгүй.</div>`;
+        <div class="news-title">${t("news_title")}</div>
+        <div class="news-empty">${t("news_empty")}</div>`;
       return;
     }
 
+    const footnoteKey = lang === "en" ? "news_footnote_en" : "news_footnote";
     section.innerHTML = `
-      <div class="news-title">Холбогдох мэдээ</div>
+      <div class="news-title">${t("news_title")}</div>
       ${data.items.map(n => `
         <a class="news-item" href="${n.url}" target="_blank" rel="noopener noreferrer">
           <div class="news-headline">${n.headline}</div>
           <div class="news-sub">${n.summary}</div>
         </a>`).join("")}
-      <div class="news-footnote">* Эх сурвалж: Finnhub / CryptoCompare — Монгол орчуулга автоматаар хийгдсэн.</div>`;
+      <div class="news-footnote">${t(footnoteKey)}</div>`;
   } catch (e) {
     section.innerHTML = `
-      <div class="news-title">Холбогдох мэдээ</div>
-      <div class="news-empty">Мэдээ татахад алдаа гарлаа.</div>`;
+      <div class="news-title">${t("news_title")}</div>
+      <div class="news-empty">${t("news_error")}</div>`;
   }
 }
 
 // ---------- Trial timer badge (жишээ логик) ----------
-(function initTrialBadge() {
+const TRIAL_DAYS_LEFT = 2; // жишээ утга — жинхэнэ Supabase холбогдсоны дараа тооцоолж солино
+
+function renderUpgradeBtn() {
   const btn = document.getElementById("upgradeBtn");
-  btn.addEventListener("click", () => {
-    alert("Энд Stripe/Payment хуудас руу шилжих холбоос орно.");
-  });
+  if (btn) btn.textContent = t("trial_badge")(TRIAL_DAYS_LEFT);
+}
+
+(function initTopbarActions() {
+  document.getElementById("upgradeBtn")?.addEventListener("click", () => alert(t("upgrade_placeholder")));
+  document.getElementById("loginBtn")?.addEventListener("click", () => alert(t("login_placeholder")));
+  document.getElementById("signupBtn")?.addEventListener("click", () => alert(t("signup_placeholder")));
 })();
+
+// i18n.js-ээс дуудагдана: хэл солигдох бүрд динамик (JS-ээр generate хийсэн) текстүүдийг дахин зурна
+function onLanguageChanged() {
+  renderUpgradeBtn();
+  // Одоогийн хайлтын үр дүн (хэрэв нээлттэй байвал) шинэ хэл дээр дахин зурагдана
+  const currentTicker = searchInput.value.trim().toUpperCase();
+  const currentAsset = ASSET_DB.find(a => a.ticker === currentTicker);
+  if (currentAsset && resultArea.querySelector(".asset-card")) {
+    runSearch(currentAsset.ticker);
+  }
+}
+renderUpgradeBtn();
 
 // Ticker tape болон index box-уудыг зэрэг биш дараалалтай ачаална
 // (нэг Finnhub key-г бүх хэрэглэгч хуваалцдаг тул нэг мөчид хэт олон хүсэлт үүсэхгүйн тулд)
