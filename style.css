@@ -528,6 +528,17 @@ body {
 }
 .modal-input:focus { border-color: var(--gold); }
 .modal-error { color: var(--loss); font-size: 12px; margin-top: 10px; min-height: 14px; }
+.modal-inline-link {
+  background: none;
+  border: none;
+  color: var(--loss);
+  text-decoration: underline;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 4px;
+}
 .modal-success { color: var(--gain); font-size: 12px; margin-top: 10px; min-height: 14px; }
 .modal-submit {
   width: 100%;

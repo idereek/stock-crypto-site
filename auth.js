@@ -224,9 +224,17 @@ document.addEventListener("DOMContentLoaded", () => {
     successEl.textContent = "";
 
     if (authModalMode === "signup") {
-      const { data, error } = await sb.auth.signUp({ email, password });
+      const { data, error } = await sb.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: window.location.origin },
+      });
       if (error) {
-        errorEl.textContent = error.message;
+        if (/already registered|already exists/i.test(error.message)) {
+          errorEl.textContent = t("auth_error_already_registered");
+        } else {
+          errorEl.textContent = error.message;
+        }
         return;
       }
       if (data.user && !data.session) {
@@ -238,7 +246,13 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       const { error } = await sb.auth.signInWithPassword({ email, password });
       if (error) {
-        errorEl.textContent = error.message;
+        if (/email not confirmed/i.test(error.message)) {
+          showUnconfirmedEmailPrompt(email);
+        } else if (/invalid login credentials/i.test(error.message)) {
+          errorEl.textContent = t("auth_error_invalid_credentials");
+        } else {
+          errorEl.textContent = error.message;
+        }
         return;
       }
       closeAuthModal();
@@ -246,15 +260,34 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+// ---------- "Email not confirmed" тохиолдолд ойлгомжтой мессеж + дахин илгээх товч ----------
+function showUnconfirmedEmailPrompt(email) {
+  const errorEl = document.getElementById("authError");
+  errorEl.innerHTML = `${t("auth_error_unconfirmed")} <button type="button" id="resendConfirmBtn" class="modal-inline-link">${t("auth_resend_link")}</button>`;
+  document.getElementById("resendConfirmBtn")?.addEventListener("click", async () => {
+    const successEl = document.getElementById("authSuccess");
+    errorEl.textContent = "";
+    const { error } = await sb.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: window.location.origin },
+    });
+    successEl.textContent = error ? error.message : t("auth_confirm_email_sent");
+  });
+}
+
 // ---------- Supabase session өөрчлөгдөх бүрд UI-г шинэчлэх ----------
 if (sb) {
   sb.auth.onAuthStateChange((_event, session) => {
+    const wasLoggedOut = !currentUser;
     currentUser = session?.user ?? null;
     currentProfile = null;
     renderAuthState();
     if (currentUser) {
       loadProfile();
       loadWatchlistCache();
+      // Имэйл баталгаажуулах холбоосоор буцаж ирэхэд modal нээлттэй үлдсэн байвал хаана
+      if (wasLoggedOut) closeAuthModal();
     } else {
       watchlistCache.clear();
     }
