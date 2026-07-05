@@ -86,21 +86,18 @@ const ASSET_DB = [
 // Ticker tape-д зориулсан богино жагсаалтууд (гүйдэг мөрөнд харуулах хэмжээ)
 const TAPE_CRYPTO_IDS = [
   "bitcoin", "ethereum", "binancecoin", "solana", "ripple",
-  "cardano", "dogecoin", "tron", "avalanche-2", "chainlink",
+  "cardano", "dogecoin", "tron", "chainlink",
 ];
 
 const TAPE_STOCK_SYMBOLS = [
-  "AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA", "NFLX", "AMD", "JPM",
-  "V", "MA", "WMT", "KO", "MCD", "NKE", "DIS", "XOM", "PFE", "UBER",
+  "AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA", "NFLX", "AMD", "JPM", "UBER",
 ];
 
 // Түүхий эд/бараа — жинхэнэ ETF-ээр илэрхийлсэн (Finnhub free tier дэмждэг тул шинэ key хэрэггүй)
 const TAPE_COMMODITIES = [
-  { symbol: "USO", label: "Хар тос (WTI)", icon: "🛢️" },
   { symbol: "UNG", label: "Байгалийн хий", icon: "🔥" },
   { symbol: "UGA", label: "Бензин", icon: "⛽" },
   { symbol: "CPER", label: "Зэс", icon: "🟤" },
-  { symbol: "BTU", label: "Нүүрс (Peabody)", icon: "⚫" },
 ];
 
 function findAsset(query) {
