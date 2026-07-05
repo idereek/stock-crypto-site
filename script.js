@@ -250,7 +250,10 @@ async function renderCrypto(asset) {
               </div>
             </div>
           </div>
-          <div class="badge live"><span class="live-dot"></span>LIVE</div>
+          <div class="badge-group">
+            <button class="watch-star" data-ticker="${asset.ticker}" title="Watchlist" type="button">☆</button>
+            <div class="badge live"><span class="live-dot"></span>LIVE</div>
+          </div>
         </div>
         ${tradingViewChart(asset)}
         <div class="stat-grid">
@@ -262,6 +265,7 @@ async function renderCrypto(asset) {
         ${newsPlaceholder()}
       </div>`;
     loadNews(asset.ticker, "crypto");
+    wireWatchStar(asset.ticker, "crypto");
   } catch (e) {
     resultArea.innerHTML = `<div class="error-state">${t("error_state")}</div>`;
   }
@@ -292,7 +296,10 @@ async function renderStockDemo(asset) {
               </div>
             </div>
           </div>
-          <div class="badge live"><span class="live-dot"></span>LIVE</div>
+          <div class="badge-group">
+            <button class="watch-star" data-ticker="${asset.ticker}" title="Watchlist" type="button">☆</button>
+            <div class="badge live"><span class="live-dot"></span>LIVE</div>
+          </div>
         </div>
         ${tradingViewChart(asset)}
         <div class="stat-grid">
@@ -304,6 +311,7 @@ async function renderStockDemo(asset) {
         ${newsPlaceholder()}
       </div>`;
     loadNews(asset.ticker, "stock");
+    wireWatchStar(asset.ticker, "stock");
   } catch (e) {
     resultArea.innerHTML = `<div class="error-state">${t("error_state")}</div>`;
   }
@@ -370,23 +378,21 @@ async function loadNews(ticker, type) {
   }
 }
 
-// ---------- Trial timer badge (жишээ логик) ----------
-const TRIAL_DAYS_LEFT = 2; // жишээ утга — жинхэнэ Supabase холбогдсоны дараа тооцоолж солино
-
-function renderUpgradeBtn() {
-  const btn = document.getElementById("upgradeBtn");
-  if (btn) btn.textContent = t("trial_badge")(TRIAL_DAYS_LEFT);
-}
-
-(function initTopbarActions() {
-  document.getElementById("upgradeBtn")?.addEventListener("click", () => alert(t("upgrade_placeholder")));
-  document.getElementById("loginBtn")?.addEventListener("click", () => alert(t("login_placeholder")));
-  document.getElementById("signupBtn")?.addEventListener("click", () => alert(t("signup_placeholder")));
+// ---------- Trial timer badge — бодит логик auth.js дотор (renderUpgradeBtnFromProfile) ----------
+// Login/Signup товчнуудын click handler-ийг ЭНД биш, auth.js дотор бүртгэсэн (жинхэнэ modal нээнэ).
+(function initUpgradeBtnClick() {
+  document.getElementById("upgradeBtn")?.addEventListener("click", () => {
+    if (typeof currentUser !== "undefined" && currentUser) {
+      alert(t("upgrade_placeholder"));
+    } else {
+      openAuthModal("signup");
+    }
+  });
 })();
 
 // i18n.js-ээс дуудагдана: хэл солигдох бүрд динамик (JS-ээр generate хийсэн) текстүүдийг дахин зурна
 function onLanguageChanged() {
-  renderUpgradeBtn();
+  if (typeof renderUpgradeBtnFromProfile === "function") renderUpgradeBtnFromProfile();
   // Одоогийн хайлтын үр дүн (хэрэв нээлттэй байвал) шинэ хэл дээр дахин зурагдана
   const currentTicker = searchInput.value.trim().toUpperCase();
   const currentAsset = ASSET_DB.find(a => a.ticker === currentTicker);
@@ -394,7 +400,6 @@ function onLanguageChanged() {
     runSearch(currentAsset.ticker);
   }
 }
-renderUpgradeBtn();
 
 // Ticker tape болон index box-уудыг зэрэг биш дараалалтай ачаална
 // (нэг Finnhub key-г бүх хэрэглэгч хуваалцдаг тул нэг мөчид хэт олон хүсэлт үүсэхгүйн тулд)

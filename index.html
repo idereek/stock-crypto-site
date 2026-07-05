@@ -25,9 +25,9 @@
     <span class="brand-name">ЗООС</span>
   </div>
   <nav class="topnav">
-    <a href="#" class="nav-link active" data-i18n="nav_terminal">Терминал</a>
+    <a href="#" class="nav-link active" data-i18n="nav_terminal" id="navTerminal">Терминал</a>
     <a href="#" class="nav-link" data-i18n="nav_news">Мэдээ</a>
-    <a href="#" class="nav-link" data-i18n="nav_watchlist">Watchlist</a>
+    <a href="#" class="nav-link" data-i18n="nav_watchlist" id="navWatchlist">Watchlist</a>
   </nav>
   <div class="topbar-actions">
     <div class="lang-switcher" id="langSwitcher">
@@ -39,9 +39,13 @@
         <button class="lang-option" data-lang="en" type="button"><span class="lang-code-badge">EN</span> English</button>
       </div>
     </div>
-    <div class="auth-actions">
+    <div class="auth-actions" id="authActionsLoggedOut">
       <button class="btn-login" id="loginBtn" data-i18n="btn_login" type="button">Нэвтрэх</button>
       <button class="btn-signup" id="signupBtn" data-i18n="btn_signup" type="button">Бүртгүүлэх</button>
+    </div>
+    <div class="auth-actions" id="authActionsLoggedIn" style="display:none;">
+      <span class="user-email" id="userEmailLabel"></span>
+      <button class="btn-login" id="logoutBtn" data-i18n="btn_logout" type="button">Гарах</button>
     </div>
     <button class="btn-upgrade" id="upgradeBtn">Trial: 2 өдөр үлдлээ</button>
   </div>
@@ -110,6 +114,25 @@
   </section>
 </main>
 
+<div class="modal-overlay" id="authModalOverlay">
+  <div class="modal-box" id="authModalBox">
+    <button class="modal-close" id="authModalClose" aria-label="Хаах" type="button">✕</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="tabLogin" data-tab="login" data-i18n="btn_login" type="button">Нэвтрэх</button>
+      <button class="modal-tab" id="tabSignup" data-tab="signup" data-i18n="btn_signup" type="button">Бүртгүүлэх</button>
+    </div>
+    <form id="authForm">
+      <label class="modal-label" data-i18n="auth_email_label">Имэйл</label>
+      <input type="email" id="authEmail" class="modal-input" required autocomplete="email" placeholder="tanhi@jishee.mn">
+      <label class="modal-label" data-i18n="auth_password_label">Нууц үг</label>
+      <input type="password" id="authPassword" class="modal-input" required autocomplete="current-password" minlength="6" placeholder="••••••••">
+      <div class="modal-error" id="authError"></div>
+      <div class="modal-success" id="authSuccess"></div>
+      <button type="submit" class="modal-submit" id="authSubmitBtn" data-i18n="btn_login">Нэвтрэх</button>
+    </form>
+  </div>
+</div>
+
 <footer class="sitefooter">
   <span data-i18n="footer_text">© 2026 Зоос — Монгол хэл дээрх санхүүгийн терминал</span>
 </footer>
@@ -118,6 +141,7 @@
 <script src="supabase-client.js"></script>
 <script src="data.js"></script>
 <script src="i18n.js"></script>
+<script src="auth.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
