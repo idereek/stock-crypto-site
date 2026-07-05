@@ -22,6 +22,26 @@ const I18N = {
     subscribed_badge: "Багц идэвхтэй ✓",
     trial_expired_badge: "Trial дууссан — багц авах",
     watchlist_empty: "Watchlist хоосон байна — ⭐ товч дарж ticker нэмээрэй.",
+    analysis_title: "Шинжилгээ",
+    analysis_disclaimer: "* Энэ бол тоон дата дээр үндэслэсэн автомат тооцоолол, хөрөнгө оруулалтын зөвлөгөө биш.",
+    analysis_chip_range: "Өдрийн хэлбэлзэл",
+    analysis_chip_vs_open: "Нээлтийн үнэтэй харьцуулбал",
+    analysis_above_open: "дээгүүр",
+    analysis_below_open: "доогуур",
+    analysis_chip_volatility: "7 хоногийн хэлбэлзэл",
+    analysis_chip_24h: "24 цагийн өөрчлөлт",
+    analysis_stock: (d) => {
+      const posText = d.posClass === "high" ? "өдрийн дээд түвшиндээ ойрхон"
+        : d.posClass === "low" ? "өдрийн доод түвшиндээ ойрхон"
+        : "өдрийн дундаж түвшинд";
+      return `Өнөөдөр үнэ ${d.trendUp ? "өсөх" : "буурах"} чиглэлтэй байна (${d.percent}%). Одоогийн үнэ ${posText} байршиж, нээлтийн үнээс ${d.gapUp ? "дээгүүр" : "доогуур"} явж байна. Өдрийн дотоод хэлбэлзэл ойролцоогоор ${d.rangePct}% байна.`;
+    },
+    analysis_crypto: (d) => {
+      const posText = d.posClass === "high" ? "7 хоногийн дээд түвшиндээ ойрхон"
+        : d.posClass === "low" ? "7 хоногийн доод түвшиндээ ойрхон"
+        : "7 хоногийн дундаж түвшинд";
+      return `Сүүлийн 7 хоногт ${d.weekTrendUp ? "өссөн" : "буурсан"} чиглэлтэй байна (${d.weekChangePct}%). Одоогийн үнэ ${posText} байна. Сүүлийн 24 цагт ${d.trend24hUp ? "өссөн" : "буурсан"} (${d.change24hPct}%). Долоо хоногийн хэлбэлзэл ойролцоогоор ${d.volatilityPct}%.`;
+    },
     hero_pre: "Зах зээлийг ",
     hero_accent: "эх хэлээрээ",
     hero_post: " уншина",
@@ -79,6 +99,26 @@ const I18N = {
     subscribed_badge: "Subscribed ✓",
     trial_expired_badge: "Trial ended — subscribe",
     watchlist_empty: "Your watchlist is empty — tap ⭐ on any asset to add it.",
+    analysis_title: "Analysis",
+    analysis_disclaimer: "* This is an automated summary based on price data, not investment advice.",
+    analysis_chip_range: "Day's range",
+    analysis_chip_vs_open: "Vs. open price",
+    analysis_above_open: "above",
+    analysis_below_open: "below",
+    analysis_chip_volatility: "7-day volatility",
+    analysis_chip_24h: "24h change",
+    analysis_stock: (d) => {
+      const posText = d.posClass === "high" ? "near its high for the day"
+        : d.posClass === "low" ? "near its low for the day"
+        : "in the middle of today's range";
+      return `Price is trending ${d.trendUp ? "up" : "down"} today (${d.percent}%). It's currently trading ${posText}, and is ${d.gapUp ? "above" : "below"} today's opening price. Today's intraday range is about ${d.rangePct}% wide.`;
+    },
+    analysis_crypto: (d) => {
+      const posText = d.posClass === "high" ? "near its 7-day high"
+        : d.posClass === "low" ? "near its 7-day low"
+        : "in the middle of its 7-day range";
+      return `Over the past 7 days the trend has been ${d.weekTrendUp ? "upward" : "downward"} (${d.weekChangePct}%). It's currently trading ${posText}. In the last 24 hours it's ${d.trend24hUp ? "up" : "down"} ${d.change24hPct}%. 7-day volatility is roughly ${d.volatilityPct}%.`;
+    },
     hero_pre: "Read the market ",
     hero_accent: "in real time",
     hero_post: "",
