@@ -53,8 +53,8 @@ function renderUpgradeBtnFromProfile() {
 
 // ---------- Profile-г Supabase-с татах ----------
 async function loadProfile() {
-  if (!currentUser || !supabase) return;
-  const { data, error } = await supabase
+  if (!currentUser || !sb) return;
+  const { data, error } = await sb
     .from("profiles")
     .select("trial_started_at, subscription_status")
     .eq("id", currentUser.id)
@@ -66,8 +66,8 @@ async function loadProfile() {
 // ---------- Watchlist-ийн бүх мөрийг татаж cache-д хийх ----------
 async function loadWatchlistCache() {
   watchlistCache.clear();
-  if (!currentUser || !supabase) return;
-  const { data, error } = await supabase
+  if (!currentUser || !sb) return;
+  const { data, error } = await sb
     .from("watchlist")
     .select("id, ticker, asset_type")
     .eq("user_id", currentUser.id);
@@ -97,14 +97,14 @@ async function toggleWatchlist(ticker, assetType, starEl) {
     openAuthModal("login");
     return;
   }
-  if (!supabase) return;
+  if (!sb) return;
 
   if (watchlistCache.has(ticker)) {
     const { id } = watchlistCache.get(ticker);
-    const { error } = await supabase.from("watchlist").delete().eq("id", id);
+    const { error } = await sb.from("watchlist").delete().eq("id", id);
     if (!error) watchlistCache.delete(ticker);
   } else {
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from("watchlist")
       .insert({ user_id: currentUser.id, ticker, asset_type: assetType })
       .select()
@@ -123,7 +123,7 @@ async function renderWatchlistView() {
   const resultArea = document.getElementById("resultArea");
   resultArea.innerHTML = `<div class="loading">${t("loading")}</div>`;
 
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from("watchlist")
     .select("ticker, asset_type, added_at")
     .eq("user_id", currentUser.id)
@@ -210,12 +210,12 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("tabSignup")?.addEventListener("click", () => { authModalMode = "signup"; updateAuthModalMode(); });
 
   document.getElementById("logoutBtn")?.addEventListener("click", async () => {
-    await supabase.auth.signOut();
+    await sb.auth.signOut();
   });
 
   document.getElementById("authForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!supabase) return;
+    if (!sb) return;
     const email = document.getElementById("authEmail").value.trim();
     const password = document.getElementById("authPassword").value;
     const errorEl = document.getElementById("authError");
@@ -224,7 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
     successEl.textContent = "";
 
     if (authModalMode === "signup") {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await sb.auth.signUp({ email, password });
       if (error) {
         errorEl.textContent = error.message;
         return;
@@ -236,7 +236,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       closeAuthModal();
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await sb.auth.signInWithPassword({ email, password });
       if (error) {
         errorEl.textContent = error.message;
         return;
@@ -247,8 +247,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ---------- Supabase session өөрчлөгдөх бүрд UI-г шинэчлэх ----------
-if (supabase) {
-  supabase.auth.onAuthStateChange((_event, session) => {
+if (sb) {
+  sb.auth.onAuthStateChange((_event, session) => {
     currentUser = session?.user ?? null;
     currentProfile = null;
     renderAuthState();
@@ -261,7 +261,7 @@ if (supabase) {
   });
 
   // Хуудас ачаалахад аль хэдийн нэвтэрсэн session байгаа эсэхийг шалгана
-  supabase.auth.getSession().then(({ data }) => {
+  sb.auth.getSession().then(({ data }) => {
     currentUser = data?.session?.user ?? null;
     renderAuthState();
     if (currentUser) {
