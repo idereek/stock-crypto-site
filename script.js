@@ -262,9 +262,10 @@ async function renderCrypto(asset) {
           <div class="stat"><span class="stat-label">${t("stat_week_high")}</span><span class="stat-val">${fmtUSD(Math.max(...prices))}</span></div>
           <div class="stat"><span class="stat-label">${t("stat_week_low")}</span><span class="stat-val">${fmtUSD(Math.min(...prices))}</span></div>
         </div>
+        ${analysisSection(buildCryptoAnalysis(marketData, prices))}
         ${newsPlaceholder()}
       </div>`;
-    loadNews(asset.ticker, "crypto");
+    loadNews(asset.ticker, "crypto", asset.names[0]);
     wireWatchStar(asset.ticker, "crypto");
   } catch (e) {
     resultArea.innerHTML = `<div class="error-state">${t("error_state")}</div>`;
@@ -308,6 +309,7 @@ async function renderStockDemo(asset) {
           <div class="stat"><span class="stat-label">${t("stat_day_low")}</span><span class="stat-val">${fmtUSD(data.low)}</span></div>
           <div class="stat"><span class="stat-label">${t("stat_prev_close")}</span><span class="stat-val">${fmtUSD(data.prevClose)}</span></div>
         </div>
+        ${analysisSection(buildStockAnalysis(data))}
         ${newsPlaceholder()}
       </div>`;
     loadNews(asset.ticker, "stock");
@@ -345,14 +347,16 @@ function newsPlaceholder() {
   </div>`;
 }
 
-async function loadNews(ticker, type) {
+async function loadNews(ticker, type, nameHint) {
   const section = document.getElementById("newsSection");
   if (!section) return;
   const lang = getLang();
   try {
     // EN сонгосон бол сервер рүү lang=en дамжуулж, Монгол орчуулгын алхмыг алгасуулна
     // (энэ нь MyMemory API-ийн өдрийн хязгаарыг ч хамгаална).
-    const res = await fetch(`/api/news?symbol=${encodeURIComponent(ticker)}&type=${type}&lang=${lang}`);
+    // Крипто-д coin-ы нэрийг (name) нэмж дамжуулж, ерөнхий крипто мэдээнээс хамааралтайг нь шүүнэ.
+    const nameParam = nameHint ? `&name=${encodeURIComponent(nameHint)}` : "";
+    const res = await fetch(`/api/news?symbol=${encodeURIComponent(ticker)}&type=${type}&lang=${lang}${nameParam}`);
     const data = await res.json();
 
     if (!res.ok || !data.items || !data.items.length) {

@@ -1,9 +1,10 @@
 // /api/news.js
-// Дуудах жишээ: /api/news?symbol=AAPL&type=stock  эсвэл  /api/news?symbol=BTC&type=crypto
+// Дуудах жишээ: /api/news?symbol=AAPL&type=stock  эсвэл  /api/news?symbol=BTC&type=crypto&name=bitcoin
 //
 // Стек:
-//  - Хувьцааны мэдээ: Finnhub /company-news (аль хэдийн байгаа FINNHUB_API_KEY ашиглана)
-//  - Криптогийн мэдээ: CryptoCompare /data/v2/news (key шаардахгүй, үнэгүй)
+//  - Хувьцааны мэдээ: Finnhub /company-news (тухайн ticker-д зориулсан)
+//  - Криптогийн мэдээ: Finnhub /news?category=crypto (ЕРӨНХИЙ мэдээ, coin нэрээр шүүнэ —
+//    CryptoCompare-ийн үнэгүй endpoint 2026.06-с хойш key шаардах болсон тул сольсон)
 //  - Орчуулга: MyMemory Translate API (key шаардахгүй, үнэгүй, өдөрт хязгаартай)
 
 async function translateToMongolian(text) {
@@ -19,32 +20,41 @@ async function translateToMongolian(text) {
 }
 
 module.exports = async function handler(req, res) {
-  const { symbol, type, lang } = req.query;
+  const { symbol, type, lang, name } = req.query;
   if (!symbol) {
     return res.status(400).json({ error: "symbol параметр дутуу байна" });
   }
 
   // Мэдээ ойролцоогоор минут тутамд л шинэчлэгддэг тул 5 минутын кэш хэвийн —
-  // ижил ticker дээр олон хэрэглэгч зэрэг ирвэл Finnhub/CryptoCompare рүү нэг л удаа очно.
+  // ижил ticker дээр олон хэрэглэгч зэрэг ирвэл Finnhub рүү нэг л удаа очно.
   res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=120");
 
   try {
     let rawItems = [];
+    const apiKey = process.env.FINNHUB_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: "Server дээр API key тохируулаагүй байна" });
+    }
 
     if (type === "crypto") {
-      const url = `https://min-api.cryptocompare.com/data/v2/news/?lang=EN&categories=${encodeURIComponent(symbol)}`;
-      const cc = await fetch(url);
-      const ccData = await cc.json();
-      rawItems = (ccData?.Data || []).slice(0, 3).map(n => ({
-        headline: n.title,
-        summary: (n.body || "").slice(0, 180),
+      // ⚠️ CryptoCompare-ийн үнэгүй news endpoint 2026.06-с хойш key шаардах болсон тул
+      // үүний оронд аль хэдийн байгаа Finnhub key-гээ ашиглаж ерөнхий крипто мэдээг татна,
+      // дараа нь тухайн coin-ы нэр/ticker-тэй хамааралтайг нь шүүнэ.
+      const url = `https://finnhub.io/api/v1/news?category=crypto&token=${apiKey}`;
+      const fh = await fetch(url);
+      const allNews = fh.ok ? await fh.json() : [];
+      const hints = [symbol.toLowerCase(), (name || "").toLowerCase()].filter(Boolean);
+      const relevant = (Array.isArray(allNews) ? allNews : []).filter(n => {
+        const text = `${n.headline || ""} ${n.summary || ""}`.toLowerCase();
+        return hints.some(h => h && text.includes(h));
+      });
+      const chosen = relevant.length ? relevant : (Array.isArray(allNews) ? allNews : []);
+      rawItems = chosen.slice(0, 3).map(n => ({
+        headline: n.headline,
+        summary: (n.summary || "").slice(0, 180),
         url: n.url,
       }));
     } else {
-      const apiKey = process.env.FINNHUB_API_KEY;
-      if (!apiKey) {
-        return res.status(500).json({ error: "Server дээр API key тохируулаагүй байна" });
-      }
       const to = new Date();
       const from = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       const fmt = (d) => d.toISOString().split("T")[0];
