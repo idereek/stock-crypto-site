@@ -23,6 +23,37 @@ async function fetchQuotesBatched(symbols, batchSize = 4, delayMs = 300) {
   return out;
 }
 
+// ---------- Ticker tape-ийн жигд, гацалтгүй урсгал (CSS animation-ий оронд) ----------
+// CSS @keyframes ашиглавал 3 минут тутамд content шинэчлэгдэхэд animation дахин
+// эхэлж, нэг жижиг "үсрэлт" үүсгэдэг байсан. Үүний оронд offset-ийг өөрөө тооцож,
+// transform-ээр байнга шилжүүлж байвал ямар ч content шинэчлэлт үүнд нөлөөлөхгүй.
+const TICKER_PX_PER_SECOND = 55;
+let tickerOffset = 0;
+let tickerRAFStarted = false;
+const prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function startTickerScroll() {
+  if (tickerRAFStarted || prefersReducedMotion) return;
+  tickerRAFStarted = true;
+  const track = document.getElementById("tickerTrack");
+  let lastTime = null;
+
+  function step(now) {
+    if (lastTime === null) lastTime = now;
+    const dt = (now - lastTime) / 1000;
+    lastTime = now;
+
+    const halfWidth = track.scrollWidth / 2; // давхардуулж тавьсан тул нийт өргөнийн хагас
+    if (halfWidth > 0) {
+      tickerOffset -= TICKER_PX_PER_SECOND * dt;
+      if (tickerOffset <= -halfWidth) tickerOffset += halfWidth; // яг үзэгдэхгүйгээр "гагцхан" шилжинэ (seamless)
+      track.style.transform = `translateX(${tickerOffset}px)`;
+    }
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
 // ---------- Ticker tape (дээд талын гүйдэг мөр): крипто + хувьцаа + түүхий эд ----------
 async function loadTickerTape() {
   let cryptoData = [];
@@ -62,17 +93,22 @@ async function loadTickerTape() {
     }).join("");
   } catch (e) { /* хувьцааны дата авахад алдаа гарвал зүгээр алгасна */ }
 
-  // Алт / мөнгө (key шаардахгүй нээлттэй эх сурвалж — үйлчилгээ өөрчлөгдвөл автоматаар алгасна)
+  // Алт / мөнгө (key шаардахгүй нээлттэй эх сурвалж) + Зэс (Мөнгөний ард шууд байрлана)
   try {
-    const [goldRes, silverRes] = await Promise.all([
+    const [goldRes, silverRes, copperResults] = await Promise.all([
       fetch("https://api.gold-api.com/price/XAU"),
       fetch("https://api.gold-api.com/price/XAG"),
+      fetchQuotesBatched(["CPER"], 1, 0),
     ]);
     const gold = goldRes.ok ? await goldRes.json() : null;
     const silver = silverRes.ok ? await silverRes.json() : null;
+    const copper = copperResults[0];
     metalItems = [
       gold ? `<span class="tape-item">🥇 <b>Алт (XAU)</b> ${fmtUSD(gold.price)}</span>` : "",
       silver ? `<span class="tape-item">🥈 <b>Мөнгө (XAG)</b> ${fmtUSD(silver.price)}</span>` : "",
+      copper ? `<span class="tape-item">🟤 <b>Зэс</b> ${fmtUSD(copper.current)}
+        <span class="${copper.percent >= 0 ? "up" : "down"}">${fmtPct(copper.percent || 0)}</span>
+      </span>` : "",
     ].join("");
   } catch (e) { /* metals эх сурвалж ажиллахгүй бол зүгээр алгасна */ }
 
@@ -98,15 +134,9 @@ async function loadTickerTape() {
   }
   // давхардуулж тавьснаар тасралтгүй гүйнэ
   track.innerHTML = allItems + allItems;
-
-  // Item-ийн тоо өөрчлөгдөх бүрт animation duration тогтмол биш үлдвэл хурд өөрчлөгдчихдөг
-  // тул агуулгын өргөнөөс хамааруулж px/секундыг тогтмол барина (хуучин хурдтай ойролцоо: ~55px/сек)
-  requestAnimationFrame(() => {
-    const singleSetWidth = track.scrollWidth / 2;
-    const PX_PER_SECOND = 55;
-    const duration = Math.max(singleSetWidth / PX_PER_SECOND, 10);
-    track.style.animationDuration = `${duration}s`;
-  });
+  // Анивчилт/гацалтгүй жигд урсгалыг эхлүүлнэ (эсвэл аль хэдийн ажиллаж байгаа бол continue хийнэ) —
+  // доор бүрэн тайлбартай startTickerScroll() функц харна.
+  startTickerScroll();
 
   // Hero хэсгийн live mini-stat мөр (эхний 3 криптог харуулна)
   const strip = document.getElementById("heroStrip");

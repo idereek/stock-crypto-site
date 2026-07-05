@@ -39,18 +39,14 @@ body {
 }
 .ticker-track {
   display: inline-block;
-  animation: scroll-tape 30s linear infinite;
   font-family: var(--mono);
   font-size: 13px;
+  will-change: transform;
 }
 .tape-item { margin-right: 40px; color: var(--text-dim); }
 .tape-item b { color: var(--text); margin-right: 6px; }
 .tape-item .up { color: var(--gain); margin-left: 6px; }
 .tape-item .down { color: var(--loss); margin-left: 6px; }
-@keyframes scroll-tape {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
 @media (prefers-reduced-motion: reduce) {
   .ticker-track { animation: none; }
   .asset-card { animation: none; }

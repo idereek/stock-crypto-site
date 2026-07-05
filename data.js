@@ -86,18 +86,18 @@ const ASSET_DB = [
 // Ticker tape-д зориулсан богино жагсаалтууд (гүйдэг мөрөнд харуулах хэмжээ)
 const TAPE_CRYPTO_IDS = [
   "bitcoin", "ethereum", "binancecoin", "solana", "ripple",
-  "cardano", "dogecoin", "tron", "chainlink",
+  "cardano", "dogecoin", "chainlink",
 ];
 
 const TAPE_STOCK_SYMBOLS = [
-  "AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA", "NFLX", "AMD", "JPM", "UBER",
+  "AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA", "NFLX", "AMD", "JPM",
 ];
 
 // Түүхий эд/бараа — жинхэнэ ETF-ээр илэрхийлсэн (Finnhub free tier дэмждэг тул шинэ key хэрэггүй)
+// Зэс (CPER) энэ жагсаалтад биш — script.js дотор Мөнгөний (XAG) дараа шууд байрлуулна
 const TAPE_COMMODITIES = [
   { symbol: "UNG", label: "Байгалийн хий", icon: "🔥" },
   { symbol: "UGA", label: "Бензин", icon: "⛽" },
-  { symbol: "CPER", label: "Зэс", icon: "🟤" },
 ];
 
 function findAsset(query) {
