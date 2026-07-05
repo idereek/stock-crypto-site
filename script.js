@@ -53,7 +53,7 @@ async function loadTickerTape() {
       const meta = ASSET_DB.find(a => a.ticker === d.symbol);
       const up = d.percent >= 0;
       const logo = meta?.domain
-        ? `<img class="tape-logo" src="https://logo.clearbit.com/${meta.domain}" alt="" onerror="this.style.display='none'">`
+        ? `<img class="tape-logo" src="https://www.google.com/s2/favicons?domain=${meta.domain}&sz=64" alt="" onerror="this.style.display='none'">`
         : "";
       return `<span class="tape-item">
         ${logo}<b>${d.symbol}</b> ${fmtUSD(d.current)}
@@ -254,7 +254,7 @@ async function renderStockDemo(asset) {
       <div class="asset-card">
         <div class="asset-head">
           <div class="asset-head-left">
-            ${asset.domain ? `<img class="asset-logo" src="https://logo.clearbit.com/${asset.domain}" alt="" onerror="this.style.display='none'">` : ""}
+            ${asset.domain ? `<img class="asset-logo" src="https://www.google.com/s2/favicons?domain=${asset.domain}&sz=128" alt="" onerror="this.style.display='none'">` : ""}
             <div>
               <div class="asset-ticker">${data.symbol} <span class="asset-name">${asset.names[0]}</span></div>
               <div class="asset-price">${fmtUSD(data.current)}

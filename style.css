@@ -321,11 +321,8 @@ body {
   height: 40px;
   border-radius: 9px;
   object-fit: contain;
-  background: #FFFFFF;
-  border: 1px solid var(--line);
   flex-shrink: 0;
   margin-top: 2px;
-  padding: 4px;
 }
 .asset-ticker { font-family: var(--mono); font-size: 20px; font-weight: 700; }
 .asset-name { font-family: var(--sans); font-weight: 400; color: var(--text-dim); font-size: 14px; margin-left: 8px; }
@@ -364,15 +361,12 @@ body {
 .badge.demo { background: var(--gold-tint); color: var(--gold); }
 
 .tape-logo {
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
   vertical-align: middle;
   margin-right: 5px;
   object-fit: contain;
-  background: #FFFFFF;
-  border: 1px solid var(--line);
-  padding: 1px;
 }
 
 .tv-chart-wrap {
