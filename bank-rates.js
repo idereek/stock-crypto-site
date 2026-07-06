@@ -6,8 +6,7 @@
 
 (function () {
   const BANK_ORDER = [
-    "golomt", "tdb", "khaan", "capitron", "state",
-    "uurgach", "euroasia", "nomin_unity", "mongolbank",
+    "mongolbank", "tdb", "golomt", "khaan", "state",
   ];
   const DEFAULT_CURRENCIES = ["USD", "EUR", "CNY", "RUB", "JPY", "KRW"];
 
