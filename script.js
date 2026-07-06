@@ -233,7 +233,10 @@ async function renderCrypto(asset) {
       fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${asset.coingeckoId}`),
       fetch(`https://api.coingecko.com/api/v3/coins/${asset.coingeckoId}/market_chart?vs_currency=usd&days=7`)
     ]);
+    if (!marketRes.ok) throw new Error(`CoinGecko markets ${marketRes.status}`);
+    if (!chartRes.ok) throw new Error(`CoinGecko market_chart ${chartRes.status}`);
     const marketData = (await marketRes.json())[0];
+    if (!marketData) throw new Error("CoinGecko: coin олдсонгүй (marketData хоосон)");
     const chartData = await chartRes.json();
     const prices = chartData.prices.map(p => p[1]);
     const up = marketData.price_change_percentage_24h >= 0;
@@ -264,7 +267,7 @@ async function renderCrypto(asset) {
         ${newsPlaceholder()}
       </div>`;
   } catch (e) {
-    resultArea.innerHTML = `<div class="error-state">${t("error_state")}</div>`;
+    resultArea.innerHTML = `<div class="error-state">${t("error_state")}<br><small style="opacity:0.6;font-size:11px;">${e && e.message ? e.message : e}</small></div>`;
     return;
   }
   // Доорх хоёр нь "нэмэлт" боломж (мэдээ, watchlist) — эвдэрсэн ч дээрх амжилттай
@@ -314,7 +317,7 @@ async function renderStockDemo(asset) {
         ${newsPlaceholder()}
       </div>`;
   } catch (e) {
-    resultArea.innerHTML = `<div class="error-state">${t("error_state")}</div>`;
+    resultArea.innerHTML = `<div class="error-state">${t("error_state")}<br><small style="opacity:0.6;font-size:11px;">${e && e.message ? e.message : e}</small></div>`;
     return;
   }
   try { loadNews(asset.ticker, "stock"); } catch (e) { console.error("loadNews failed:", e); }
