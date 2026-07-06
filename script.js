@@ -236,8 +236,8 @@ async function renderCrypto(asset) {
     const marketData = (await marketRes.json())[0];
     const chartData = await chartRes.json();
     const prices = chartData.prices.map(p => p[1]);
-
     const up = marketData.price_change_percentage_24h >= 0;
+
     resultArea.innerHTML = `
       <div class="asset-card">
         <div class="asset-head">
@@ -263,11 +263,16 @@ async function renderCrypto(asset) {
         ${analysisSection(buildCryptoAnalysis(marketData, prices))}
         ${newsPlaceholder()}
       </div>`;
-    loadNews(asset.ticker, "crypto", asset.names[0]);
-    wireWatchStar(asset.ticker, "crypto");
   } catch (e) {
     resultArea.innerHTML = `<div class="error-state">${t("error_state")}</div>`;
+    return;
   }
+  // Доорх хоёр нь "нэмэлт" боломж (мэдээ, watchlist) — эвдэрсэн ч дээрх амжилттай
+  // зурсан картыг ХЭЗЭЭ Ч дарж бичихгүй, тусад нь алдаагаа зэрэглэнэ.
+  try { loadNews(asset.ticker, "crypto", asset.names[0]); } catch (e) { console.error("loadNews failed:", e); }
+  try {
+    if (typeof wireWatchStar === "function") wireWatchStar(asset.ticker, "crypto");
+  } catch (e) { console.error("wireWatchStar failed:", e); }
 }
 
 // ---------- Хувьцааны карт (Finnhub-с /api/quote дамжуулан live) ----------
@@ -308,11 +313,14 @@ async function renderStockDemo(asset) {
         ${analysisSection(buildStockAnalysis(data))}
         ${newsPlaceholder()}
       </div>`;
-    loadNews(asset.ticker, "stock");
-    wireWatchStar(asset.ticker, "stock");
   } catch (e) {
     resultArea.innerHTML = `<div class="error-state">${t("error_state")}</div>`;
+    return;
   }
+  try { loadNews(asset.ticker, "stock"); } catch (e) { console.error("loadNews failed:", e); }
+  try {
+    if (typeof wireWatchStar === "function") wireWatchStar(asset.ticker, "stock");
+  } catch (e) { console.error("wireWatchStar failed:", e); }
 }
 
 // ---------- TradingView chart (crosshair/point курсор native дэмжигдсэн) ----------
