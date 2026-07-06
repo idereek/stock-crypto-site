@@ -1,0 +1,59 @@
+/* ============================================================
+   Банкны ханш харьцуулах блок — style.css-ийн төгсгөлд нэмнэ
+   (одоо байгаа gold-accent терминал загвартай нийцүүлсэн)
+   ============================================================ */
+
+.bank-rates-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bank-rates-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  min-width: 560px;
+}
+
+.bank-rates-table th,
+.bank-rates-table td {
+  padding: 8px 10px;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border-color, #e5e2da);
+}
+
+.bank-rates-table th:first-child,
+.bank-rates-table td:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+
+.bank-rates-table thead tr:first-child th {
+  font-weight: 700;
+  color: var(--text-primary, #1a1a1a);
+}
+
+.bank-rates-table thead tr:last-child th {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-secondary, #6b6b6b);
+}
+
+.bank-rates-best {
+  color: var(--gold-accent, #b8860b);
+  font-weight: 700;
+}
+
+.bank-rates-updated,
+.bank-rates-disclaimer {
+  font-size: 0.78rem;
+  color: var(--text-secondary, #6b6b6b);
+  margin-top: 8px;
+}
+
+.bank-rates-error {
+  font-size: 0.9rem;
+  color: var(--text-secondary, #6b6b6b);
+  padding: 12px 0;
+}
