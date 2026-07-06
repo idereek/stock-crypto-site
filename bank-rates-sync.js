@@ -16,9 +16,6 @@ const BROWSER_HEADERS = {
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
 };
 
-// gogo.mn/exchange хуудсан дэх хүснэгтүүдийн дараалал (tab-уудын дараалалтай тохирно).
-// 1-р хүснэгт (Монгол банк) нь ганц баганатай (Зарласан ханш),
-// үлдсэн нь Авах/Зарах гэсэн 2 баганатай.
 const BANK_TABLES = [
   { key: "mongolbank", name_mn: "Монголбанк (албан ханш)", singleColumn: true },
   { key: "golomt", name_mn: "Голомт Банк", singleColumn: false },
@@ -45,8 +42,6 @@ function stripTags(html) {
     .trim();
 }
 
-// Нэг <td>-ийн текстээс ЗӨВХӨН эхний тоог авна (жишээ "4,053.00 3.00" -> 4053.00),
-// учир нь хоёр дахь тоо нь өдрийн өөрчлөлт (+/-) байдаг, ханш биш.
 function parseFirstNumber(text) {
   const match = text.match(/-?[\d,]+\.?\d*/);
   if (!match) return null;
@@ -65,7 +60,6 @@ function parseTable(tableHtml, singleColumn) {
 
     const cellTexts = cellMatches.map((c) => stripTags(c[0]));
 
-    // Валютын кодыг агуулсан нүдийг олно (жишээ "USD АНУ-ын доллар ...")
     const codeIdx = cellTexts.findIndex((t) => {
       const m = t.match(/\b([A-Z]{3})\b/);
       return m && KNOWN_CODES.has(m[1]);
@@ -100,8 +94,6 @@ async function getGogoBankRates() {
 
   const tableMatches = [...html.matchAll(/<table[\s\S]*?<\/table>/gi)];
 
-  // Валютын код агуулсан (жинхэнэ ханшийн) хүснэгтүүдийг л шүүнэ, нэгтгэсэн
-  // "Ханш харьцуулалт" мэт давхардсан хүснэгтийг оруулахгүйн тулд эхний N-ийг л авна
   const rateTables = tableMatches.filter((m) => /USD|EUR|CNY/.test(stripTags(m[0])));
 
   if (!rateTables.length) {
