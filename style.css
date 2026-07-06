@@ -322,20 +322,21 @@ body {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.asset-head { display: flex; justify-content: space-between; align-items: flex-start; }
-.asset-head-left { display: flex; align-items: flex-start; gap: 14px; }
-.asset-logo {
-  width: 40px;
-  height: 40px;
-  border-radius: 9px;
-  object-fit: contain;
-  flex-shrink: 0;
-  margin-top: 2px;
+.asset-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px 16px; }
+.asset-head-left { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.asset-type-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: var(--gold-tint);
+  padding: 3px 8px;
+  border-radius: 5px;
 }
 .asset-ticker { font-family: var(--mono); font-size: 20px; font-weight: 700; }
-.asset-name { font-family: var(--sans); font-weight: 400; color: var(--text-dim); font-size: 14px; margin-left: 8px; }
-.asset-price { font-family: var(--mono); font-size: 32px; margin-top: 6px; }
-.chg { font-size: 15px; margin-left: 10px; }
+.asset-price-inline { font-family: var(--mono); font-size: 20px; }
+.chg { font-size: 14px; margin-left: 8px; }
 .chg.up { color: var(--gain); }
 .chg.down { color: var(--loss); }
 .badge {

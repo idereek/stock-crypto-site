@@ -242,13 +242,11 @@ async function renderCrypto(asset) {
       <div class="asset-card">
         <div class="asset-head">
           <div class="asset-head-left">
-            <img class="asset-logo" src="${marketData.image}" alt="" onerror="this.style.display='none'">
-            <div>
-              <div class="asset-ticker">${marketData.symbol.toUpperCase()} <span class="asset-name">${marketData.name}</span></div>
-              <div class="asset-price">${fmtUSD(marketData.current_price)}
-                <span class="chg ${up ? "up" : "down"}">${fmtPct(marketData.price_change_percentage_24h || 0)} ${t("chg_24h_suffix")}</span>
-              </div>
-            </div>
+            <span class="asset-type-tag">${t("type_crypto")}</span>
+            <span class="asset-ticker">${marketData.symbol.toUpperCase()}</span>
+            <span class="asset-price-inline">${fmtUSD(marketData.current_price)}
+              <span class="chg ${up ? "up" : "down"}">${fmtPct(marketData.price_change_percentage_24h || 0)} ${t("chg_24h_suffix")}</span>
+            </span>
           </div>
           <div class="badge-group">
             <button class="watch-star" data-ticker="${asset.ticker}" title="Watchlist" type="button">☆</button>
@@ -289,13 +287,11 @@ async function renderStockDemo(asset) {
       <div class="asset-card">
         <div class="asset-head">
           <div class="asset-head-left">
-            ${asset.domain ? `<img class="asset-logo" src="https://www.google.com/s2/favicons?domain=${asset.domain}&sz=128" alt="" onerror="this.style.display='none'">` : ""}
-            <div>
-              <div class="asset-ticker">${data.symbol} <span class="asset-name">${asset.names[0]}</span></div>
-              <div class="asset-price">${fmtUSD(data.current)}
-                <span class="chg ${up ? "up" : "down"}">${fmtPct(data.percent)} ${t("chg_today_suffix")}</span>
-              </div>
-            </div>
+            <span class="asset-type-tag">${t("type_stock")}</span>
+            <span class="asset-ticker">${data.symbol}</span>
+            <span class="asset-price-inline">${fmtUSD(data.current)}
+              <span class="chg ${up ? "up" : "down"}">${fmtPct(data.percent)} ${t("chg_today_suffix")}</span>
+            </span>
           </div>
           <div class="badge-group">
             <button class="watch-star" data-ticker="${asset.ticker}" title="Watchlist" type="button">☆</button>
