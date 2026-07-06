@@ -1,13 +1,11 @@
 // api/bank-rates-sync.js
-// Vercel Cron энэ endpoint-ийг өдөрт 2 удаа (09:00 ба 18:00 УБ цагаар) дуудна.
-// CommonJS ашиглана (package.json байхгүй тул export default АЖИЛЛАХГҮЙ).
+// Эх сурвалж: https://gogo.mn/exchange
+// Энэ нэг хуудсан дээр Монголбанкны албан ханш + 8 банк/газрын ханшийг
+// server-rendered HTML хэлбэрээр өгдөг тул headless browser шаардлагагүй.
 //
-// Шаардлагатай Vercel Environment Variables:
-//   SUPABASE_URL                — https://gbjwxuvrkuopfcrnxwvs.supabase.co
-//   SUPABASE_SERVICE_ROLE_KEY   — Supabase Dashboard → Settings → API → service_role key
-//                                  (АНХААР: энэ key-г ЭНГИЙН client файлд хэзээ ч бичиж болохгүй,
-//                                   зөвхөн server-талын Environment Variable-д л байрлана)
-//   CRON_SECRET                 — санамсаргүй урт тэмдэгтийн мөр, зөвхөн Vercel Cron дуудахад ашиглана
+// Vercel Environment Variables:
+//   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY шаардлагатай.
+//   CRON_SECRET (заавал биш) — байвал Authorization header шалгана.
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -18,160 +16,132 @@ const BROWSER_HEADERS = {
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
 };
 
-const RATE_ID_TO_CODE = {
-  3: "USD",
-  4: "EUR",
-  5: "CNY",
-  6: "RUB",
-  7: "JPY",
-  8: "GBP",
-  9: "CHF",
-  11: "KRW",
-  12: "HKD",
-  13: "AUD",
-  14: "CAD",
-  15: "SGD",
-  16: "SEK",
-};
+// gogo.mn/exchange хуудсан дэх хүснэгтүүдийн дараалал (tab-уудын дараалалтай тохирно).
+// 1-р хүснэгт (Монгол банк) нь ганц баганатай (Зарласан ханш),
+// үлдсэн нь Авах/Зарах гэсэн 2 баганатай.
+const BANK_TABLES = [
+  { key: "mongolbank", name_mn: "Монголбанк (албан ханш)", singleColumn: true },
+  { key: "golomt", name_mn: "Голомт Банк", singleColumn: false },
+  { key: "tdb", name_mn: "ХХБанк (ХХБ)", singleColumn: false },
+  { key: "khaan", name_mn: "ХААН Банк", singleColumn: false },
+  { key: "capitron", name_mn: "Капитрон Банк", singleColumn: false },
+  { key: "state", name_mn: "Төрийн Банк", singleColumn: false },
+  { key: "uurgach", name_mn: "Уран Уургач", singleColumn: false },
+  { key: "euroasia", name_mn: "Евро Ази", singleColumn: false },
+  { key: "nomin_unity", name_mn: "Номин Юнити ББСБ", singleColumn: false },
+];
 
-async function fetchJson(url, opts) {
-  const res = await fetch(url, { headers: BROWSER_HEADERS, ...opts });
-  if (!res.ok) throw new Error(`${url} -> HTTP ${res.status}`);
-  return res.json();
+const KNOWN_CODES = new Set([
+  "USD", "EUR", "GBP", "RUB", "CNY", "JPY", "KRW", "CAD", "NZD", "AUD",
+  "HKD", "SGD", "CHF", "SEK", "XAU", "XAG", "INR", "CZK", "THB", "KZT",
+  "TWD", "MYR", "HUF", "BGN", "EGP", "KPW", "IDR", "KWD", "SDR",
+]);
+
+function stripTags(html) {
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-async function fetchText(url, opts) {
-  const res = await fetch(url, { headers: BROWSER_HEADERS, ...opts });
-  if (!res.ok) throw new Error(`${url} -> HTTP ${res.status}`);
-  return res.text();
+// Нэг <td>-ийн текстээс ЗӨВХӨН эхний тоог авна (жишээ "4,053.00 3.00" -> 4053.00),
+// учир нь хоёр дахь тоо нь өдрийн өөрчлөлт (+/-) байдаг, ханш биш.
+function parseFirstNumber(text) {
+  const match = text.match(/-?[\d,]+\.?\d*/);
+  if (!match) return null;
+  const cleaned = match[0].replace(/,/g, "");
+  const n = parseFloat(cleaned);
+  return Number.isNaN(n) ? null : n;
 }
 
-// ---------- Монголбанк (албан ханш, baseline) ----------
-async function getMongolbankRates() {
-  const json = await fetchJson("https://www.mongolbank.mn/mn/currency-rates-json"); // fallback endpoint — эх сайт бүтэц өөрчлөгдсөн бол доорх try/catch алдаа барина
-  // Тодорхойгүй бүтэц тул хамгаалалттайгаар boолож үзнэ:
-  const list = Array.isArray(json) ? json : json?.data || json?.rates || [];
-  return list
-    .map((item) => ({
-      currency: item.code || item.currency,
-      official: parseFloat(item.rate || item.value || item.rate_float),
-    }))
-    .filter((r) => r.currency && !Number.isNaN(r.official))
-    .map((r) => ({
-      bank: "mongolbank",
-      bank_name_mn: "Монголбанк (албан ханш)",
-      currency: r.currency,
-      buy_cash: null,
-      sell_cash: null,
-      buy_noncash: null,
-      sell_noncash: null,
-      official: r.official,
-    }));
-}
+function parseTable(tableHtml, singleColumn) {
+  const rowMatches = [...tableHtml.matchAll(/<tr[\s\S]*?<\/tr>/gi)];
+  const rows = [];
 
-// ---------- Голомт банк ----------
-async function getGolomtRates() {
-  const json = await fetchJson(
-    "https://www.golomtbank.com/mn/home/ratesForSites/rate.json"
-  );
-  const rates = json?.rates || [];
-  return rates
-    .map((r) => {
-      // Талбарын нэрс он оны туршид өөрчлөгдсөн байж болзошгүй тул
-      // хэд хэдэн боломжит түлхүүрийг туршина
-      const idField = Object.keys(r).find((k) => k.startsWith("rate_id"));
-      const officialField = Object.keys(r).find((k) => k.startsWith("mongol_b"));
-      const cashBuyField = Object.keys(r).find((k) => k.startsWith("cash_buy"));
-      const cashSellField = Object.keys(r).find((k) => k.startsWith("cash_sel"));
-      const nonCashBuyField = Object.keys(r).find((k) => k.startsWith("non_cash6"));
-      const nonCashSellField = Object.keys(r).find((k) => k.startsWith("non_cash7"));
+  for (const rowMatch of rowMatches) {
+    const cellMatches = [...rowMatch[0].matchAll(/<td[\s\S]*?<\/td>/gi)];
+    if (!cellMatches.length) continue;
 
-      const code = RATE_ID_TO_CODE[r[idField]];
-      if (!code) return null;
+    const cellTexts = cellMatches.map((c) => stripTags(c[0]));
 
-      return {
-        bank: "golomt",
-        bank_name_mn: "Голомт банк",
-        currency: code,
-        buy_cash: parseFloat(r[cashBuyField]) || null,
-        sell_cash: parseFloat(r[cashSellField]) || null,
-        buy_noncash: parseFloat(r[nonCashBuyField]) || null,
-        sell_noncash: parseFloat(r[nonCashSellField]) || null,
-        official: parseFloat(r[officialField]) || null,
-      };
-    })
-    .filter(Boolean);
-}
-
-// ---------- Хаан банк ----------
-async function getKhaanRates() {
-  const json = await fetchJson(
-    "https://kbknew.khanbank.com/api/site/home?lang=mn&site=personal"
-  );
-  const list = json?.data?.currencies?.today || [];
-  return list.map((r) => ({
-    bank: "khaan",
-    bank_name_mn: "Хаан банк",
-    currency: r.code,
-    buy_cash: parseFloat(r.buy_cash) || null,
-    sell_cash: parseFloat(r.sell_cash) || null,
-    buy_noncash: parseFloat(r.buy) || null,
-    sell_noncash: parseFloat(r.sell) || null,
-    official: parseFloat(r.alban) || null,
-  }));
-}
-
-// ---------- ХасБанк (HTML доторх <script> JSON-г salгах) ----------
-async function getXacRates() {
-  const html = await fetchText("https://www.xacbank.mn/calculator/rates");
-  const match = html.match(/var\s+weekRates\s*=\s*(\[[\s\S]*?\]);/);
-  if (!match) throw new Error("xacbank: weekRates script блок олдсонгүй — хуудасны бүтэц өөрчлөгдсөн байж магадгүй");
-  const weekRates = JSON.parse(match[1]);
-  // weekRates[i] бол өдөр тус бүрийн массив; сүүлчийн (хамгийн сүүлийн үеийн) өдрийг авна
-  const latestDay = weekRates[weekRates.length - 1];
-  if (!Array.isArray(latestDay)) throw new Error("xacbank: хүлээгдээгүй өгөгдлийн бүтэц");
-  return latestDay.map((r) => ({
-    bank: "xac",
-    bank_name_mn: "ХасБанк",
-    currency: r.code,
-    buy_cash: parseFloat(r.buy_cash) || null,
-    sell_cash: parseFloat(r.sell_cash) || null,
-    buy_noncash: parseFloat(r.buy) || null,
-    sell_noncash: parseFloat(r.sell) || null,
-    official: parseFloat(r.alban) || null,
-  }));
-}
-
-// ---------- ХХБанк / TDB (HTML хүснэгт scrape) ----------
-async function getTdbRates() {
-  const html = await fetchText("http://www.tdbm.mn/script.php?mod=rate&ln=mn");
-  const tableMatch = html.match(/<table[\s\S]*?<\/table>/i);
-  if (!tableMatch) throw new Error("tdb: хүснэгт олдсонгүй");
-  const rows = [...tableMatch[0].matchAll(/<tr[\s\S]*?<\/tr>/gi)];
-  const results = [];
-  rows.forEach((rowMatch, idx) => {
-    if (idx <= 2) return; // эхний 3 мөр толгой (header) байдаг
-    const row = rowMatch[0];
-    const cells = [...row.matchAll(/<td[\s\S]*?<\/td>/gi)].map((c) => c[0]);
-    if (cells.length < 5) return;
-    const srcMatch = cells[0].match(/src="([^"]+)"/i);
-    if (!srcMatch) return;
-    const filename = srcMatch[1].split("/").pop() || "";
-    const code = (filename.split(".")[0] || "").toUpperCase();
-    const stripTags = (s) => s.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, "").trim();
-    if (!code) return;
-    results.push({
-      bank: "tdb",
-      bank_name_mn: "ХХБанк (TDB)",
-      currency: code,
-      buy_cash: parseFloat(stripTags(cells[1])) || null,
-      sell_cash: parseFloat(stripTags(cells[2])) || null,
-      buy_noncash: parseFloat(stripTags(cells[3])) || null,
-      sell_noncash: parseFloat(stripTags(cells[4])) || null,
-      official: null,
+    // Валютын кодыг агуулсан нүдийг олно (жишээ "USD АНУ-ын доллар ...")
+    const codeIdx = cellTexts.findIndex((t) => {
+      const m = t.match(/\b([A-Z]{3})\b/);
+      return m && KNOWN_CODES.has(m[1]);
     });
+    if (codeIdx === -1) continue;
+
+    const codeMatch = cellTexts[codeIdx].match(/\b([A-Z]{3})\b/);
+    const code = codeMatch[1];
+
+    const afterCells = cellTexts.slice(codeIdx + 1);
+    if (!afterCells.length) continue;
+
+    if (singleColumn) {
+      const official = parseFirstNumber(afterCells[0]);
+      if (official === null) continue;
+      rows.push({ currency: code, official, buy_cash: null, sell_cash: null });
+    } else {
+      const buy = parseFirstNumber(afterCells[0]);
+      const sell = afterCells.length > 1 ? parseFirstNumber(afterCells[1]) : null;
+      if (buy === null && sell === null) continue;
+      rows.push({ currency: code, buy_cash: buy, sell_cash: sell, official: null });
+    }
+  }
+
+  return rows;
+}
+
+async function getGogoBankRates() {
+  const res = await fetch("https://gogo.mn/exchange", { headers: BROWSER_HEADERS });
+  if (!res.ok) throw new Error(`gogo.mn -> HTTP ${res.status}`);
+  const html = await res.text();
+
+  const tableMatches = [...html.matchAll(/<table[\s\S]*?<\/table>/gi)];
+
+  // Валютын код агуулсан (жинхэнэ ханшийн) хүснэгтүүдийг л шүүнэ, нэгтгэсэн
+  // "Ханш харьцуулалт" мэт давхардсан хүснэгтийг оруулахгүйн тулд эхний N-ийг л авна
+  const rateTables = tableMatches.filter((m) => /USD|EUR|CNY/.test(stripTags(m[0])));
+
+  if (!rateTables.length) {
+    throw new Error("gogo.mn: ханшийн хүснэгт олдсонгүй — хуудасны бүтэц өөрчлөгдсөн байж магадгүй");
+  }
+
+  const allRows = [];
+  const perBankResult = {};
+
+  BANK_TABLES.forEach((bank, idx) => {
+    const tableMatch = rateTables[idx];
+    if (!tableMatch) {
+      perBankResult[bank.key] = { ok: false, error: "тохирох хүснэгт олдсонгүй (индекс дутуу)" };
+      return;
+    }
+    try {
+      const rows = parseTable(tableMatch[0], bank.singleColumn);
+      if (!rows.length) {
+        perBankResult[bank.key] = { ok: false, error: "хүснэгтэд мөр задарсангүй" };
+        return;
+      }
+      rows.forEach((r) => {
+        allRows.push({
+          bank: bank.key,
+          bank_name_mn: bank.name_mn,
+          currency: r.currency,
+          buy_cash: r.buy_cash,
+          sell_cash: r.sell_cash,
+          buy_noncash: null,
+          sell_noncash: null,
+          official: r.official,
+        });
+      });
+      perBankResult[bank.key] = { ok: true, count: rows.length };
+    } catch (err) {
+      perBankResult[bank.key] = { ok: false, error: String(err.message || err) };
+    }
   });
-  return results;
+
+  return { rows: allRows, perBankResult };
 }
 
 async function upsertToSupabase(rows) {
@@ -184,9 +154,7 @@ async function upsertToSupabase(rows) {
       Authorization: `Bearer ${SERVICE_KEY}`,
       Prefer: "resolution=merge-duplicates,return=minimal",
     },
-    body: JSON.stringify(
-      rows.map((r) => ({ ...r, updated_at: new Date().toISOString() }))
-    ),
+    body: JSON.stringify(rows.map((r) => ({ ...r, updated_at: new Date().toISOString() }))),
   });
   if (!res.ok) {
     const text = await res.text();
@@ -196,7 +164,6 @@ async function upsertToSupabase(rows) {
 }
 
 module.exports = async function handler(req, res) {
-  // Аюулгүй байдал: Vercel Cron болон гараар тестлэхэд CRON_SECRET шалгана
   const authHeader = req.headers["authorization"];
   if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
     res.status(401).json({ error: "Unauthorized" });
@@ -208,33 +175,11 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  // Банк тус бүрийг тусад нь try/catch-д хийнэ — нэг банк унавал бусад нь ажиллаж үлдэнэ
-  // (README-д тэмдэглэсэн сургамж #11-тэй адил зарчим)
-  const sources = [
-    { name: "mongolbank", fn: getMongolbankRates },
-    { name: "golomt", fn: getGolomtRates },
-    { name: "khaan", fn: getKhaanRates },
-    { name: "xac", fn: getXacRates },
-    { name: "tdb", fn: getTdbRates },
-  ];
-
-  const results = {};
-  const allRows = [];
-
-  for (const src of sources) {
-    try {
-      const rows = await src.fn();
-      results[src.name] = { ok: true, count: rows.length };
-      allRows.push(...rows);
-    } catch (err) {
-      results[src.name] = { ok: false, error: String(err.message || err) };
-    }
-  }
-
   try {
-    const upsertResult = await upsertToSupabase(allRows);
-    res.status(200).json({ ok: true, sources: results, ...upsertResult });
+    const { rows, perBankResult } = await getGogoBankRates();
+    const upsertResult = await upsertToSupabase(rows);
+    res.status(200).json({ ok: true, source: "gogo.mn/exchange", sources: perBankResult, ...upsertResult });
   } catch (err) {
-    res.status(500).json({ ok: false, sources: results, error: String(err.message || err) });
+    res.status(500).json({ ok: false, error: String(err.message || err) });
   }
 };

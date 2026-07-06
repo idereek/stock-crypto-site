@@ -5,7 +5,10 @@
 // supabase-client.js хуудсанд өмнө нь холбогдсон байх ёстой (sb global хувьсагч).
 
 (function () {
-  const BANK_ORDER = ["golomt", "khaan", "xac", "tdb", "mongolbank"];
+  const BANK_ORDER = [
+    "golomt", "tdb", "khaan", "capitron", "state",
+    "uurgach", "euroasia", "nomin_unity", "mongolbank",
+  ];
   const DEFAULT_CURRENCIES = ["USD", "EUR", "CNY", "RUB", "JPY", "KRW"];
 
   function injectStyles() {
@@ -105,10 +108,11 @@
 
       banksPresent.forEach((b) => {
         const cell = byKey[b + "__" + currency];
-        const buy = cell?.buy_cash;
-        const sell = cell?.sell_cash;
-        const buyClass = buy != null && buy === bestBuy ? " bank-rates-best" : "";
-        const sellClass = sell != null && sell === bestSell ? " bank-rates-best" : "";
+        // Монголбанк (mongolbank) нь Авах/Зарах биш, ганц "албан ханш" (official) утгатай
+        const buy = b === "mongolbank" ? cell?.official : cell?.buy_cash;
+        const sell = b === "mongolbank" ? cell?.official : cell?.sell_cash;
+        const buyClass = b !== "mongolbank" && buy != null && buy === bestBuy ? " bank-rates-best" : "";
+        const sellClass = b !== "mongolbank" && sell != null && sell === bestSell ? " bank-rates-best" : "";
         html += `<td class="${buyClass}">${buy != null ? formatRate(buy) : "—"}</td>`;
         html += `<td class="${sellClass}">${sell != null ? formatRate(sell) : "—"}</td>`;
       });
