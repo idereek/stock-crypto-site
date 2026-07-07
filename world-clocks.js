@@ -9,11 +9,11 @@
 (function () {
   const CITIES = [
     { key: "ub", name: "УЛААНБААТАР", tz: "Asia/Ulaanbaatar" },
-    { key: "hk", name: "ХОНГ КОНГ", tz: "Asia/Hong_Kong" },
-    { key: "tokyo", name: "ТОКИО", tz: "Asia/Tokyo" },
-    { key: "frankfurt", name: "ФРАНКФУРТ", tz: "Europe/Berlin" },
-    { key: "london", name: "ЛОНДОН", tz: "Europe/London" },
-    { key: "ny", name: "НЬЮ-ЙОРК", tz: "America/New_York" },
+    { key: "hk", name: "ХОНГ КОНГ", tz: "Asia/Hong_Kong", market: { open: 9.5, close: 16 } },
+    { key: "tokyo", name: "ТОКИО", tz: "Asia/Tokyo", market: { open: 9, close: 15 } },
+    { key: "frankfurt", name: "ФРАНКФУРТ", tz: "Europe/Berlin", market: { open: 9, close: 17.5 } },
+    { key: "london", name: "ЛОНДОН", tz: "Europe/London", market: { open: 8, close: 16.5 } },
+    { key: "ny", name: "НЬЮ-ЙОРК", tz: "America/New_York", market: { open: 9.5, close: 16 } },
   ];
 
   function loadFont() {
@@ -55,6 +55,7 @@
         gap: 4px;
         min-width: 0;
       }
+      .wc-city-row { display: flex; align-items: center; gap: 5px; padding-bottom: 4px; border-bottom: 1px solid var(--line, #E7E0D0); }
       .wc-city {
         font-family: var(--mono, ui-monospace, monospace);
         font-size: 10px;
@@ -64,9 +65,15 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        padding-bottom: 4px;
-        border-bottom: 1px solid var(--line, #E7E0D0);
       }
+      .wc-market-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .wc-market-dot.open { background: var(--gain, #12946B); }
+      .wc-market-dot.closed { background: var(--text-dim, #7A7266); opacity: 0.4; }
       .wc-digital {
         font-family: 'Orbitron', var(--mono, ui-monospace, monospace);
         font-size: 17px;
@@ -116,7 +123,10 @@
       <div class="wc-item">
         <div class="wc-face-wrap">${buildClockSVG(c)}</div>
         <div class="wc-info">
-          <span class="wc-city">${c.name}</span>
+          <span class="wc-city-row">
+            <span class="wc-city">${c.name}</span>
+            ${c.market ? `<span class="wc-market-dot closed" id="wc-market-${c.key}"></span>` : ""}
+          </span>
           <span class="wc-digital" id="wc-digital-${c.key}">--:--</span>
         </div>
       </div>
@@ -137,17 +147,21 @@
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
+      weekday: "short",
     });
     const parts = fmt.formatToParts(new Date());
     const get = (type) => Number(parts.find((p) => p.type === type).value);
-    return { h: get("hour") % 24, m: get("minute"), s: get("second") };
+    const weekday = parts.find((p) => p.type === "weekday").value;
+    return { h: get("hour") % 24, m: get("minute"), s: get("second"), weekday };
   }
+
+  const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 
   function updateClocks() {
     CITIES.forEach((c) => {
-      let h, m, s;
+      let h, m, s, weekday;
       try {
-        ({ h, m, s } = getTimeParts(c.tz));
+        ({ h, m, s, weekday } = getTimeParts(c.tz));
       } catch (err) {
         return;
       }
@@ -160,12 +174,21 @@
       const minEl = document.getElementById(`wc-min-${c.key}`);
       const secEl = document.getElementById(`wc-sec-${c.key}`);
       const digitalEl = document.getElementById(`wc-digital-${c.key}`);
+      const marketEl = document.getElementById(`wc-market-${c.key}`);
 
       if (hourEl) hourEl.setAttribute("transform", `rotate(${hourDeg} 32 32)`);
       if (minEl) minEl.setAttribute("transform", `rotate(${minDeg} 32 32)`);
       if (secEl) secEl.setAttribute("transform", `rotate(${secDeg} 32 32)`);
       if (digitalEl) {
         digitalEl.textContent = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+      }
+      if (marketEl && c.market) {
+        const decimalHour = h + m / 60;
+        const isWeekday = WEEKDAYS.includes(weekday);
+        const isOpen = isWeekday && decimalHour >= c.market.open && decimalHour < c.market.close;
+        marketEl.classList.toggle("open", isOpen);
+        marketEl.classList.toggle("closed", !isOpen);
+        marketEl.title = isOpen ? "Бирж нээлттэй" : "Бирж хаалттай";
       }
     });
   }
