@@ -9,11 +9,17 @@
     "mongolbank", "tdb", "golomt", "khaan", "state",
   ];
   const DEFAULT_CURRENCIES = ["USD", "EUR", "GBP", "CNY", "RUB", "JPY", "KRW"];
-  const CURRENCY_FLAGS = {
+  const CURRENCY_SYMBOLS = {
     USD: "$", EUR: "€", GBP: "£", CNY: "¥",
     RUB: "₽", JPY: "¥", KRW: "₩", CAD: "$",
     AUD: "$", NZD: "$", HKD: "$", SGD: "$",
     CHF: "₣", INR: "₹", KZT: "₸",
+  };
+  const CURRENCY_FLAGS = {
+    USD: "🇺🇸", EUR: "🇪🇺", GBP: "🇬🇧", CNY: "🇨🇳",
+    RUB: "🇷🇺", JPY: "🇯🇵", KRW: "🇰🇷", CAD: "🇨🇦",
+    AUD: "🇦🇺", NZD: "🇳🇿", HKD: "🇭🇰", SGD: "🇸🇬",
+    CHF: "🇨🇭", INR: "🇮🇳", KZT: "🇰🇿",
   };
 
   function injectStyles() {
@@ -104,7 +110,7 @@
     html += "</tr></thead><tbody>";
 
     currencies.forEach((currency) => {
-      html += `<tr><td class="bank-rates-currency">${CURRENCY_FLAGS[currency] || ""} ${currency}</td>`;
+      html += `<tr><td class="bank-rates-currency">${CURRENCY_SYMBOLS[currency] || ""} ${CURRENCY_FLAGS[currency] || ""} ${currency}</td>`;
       const cellsForCurrency = banksPresent.map((b) => byKey[b + "__" + currency]);
       const buyValues = cellsForCurrency.map((c) => c?.buy_cash).filter((v) => v != null);
       const sellValues = cellsForCurrency.map((c) => c?.sell_cash).filter((v) => v != null);
