@@ -8,7 +8,7 @@
 
 (function () {
   const CITIES = [
-    { key: "ub", name: "УЛААНБААТАР", tz: "Asia/Ulaanbaatar" },
+    { key: "ub", name: "УЛААНБААТАР", tz: "Asia/Ulaanbaatar", market: { open: 10, close: 13 } },
     { key: "hk", name: "ХОНГ КОНГ", tz: "Asia/Hong_Kong", market: { open: 9.5, close: 16 } },
     { key: "tokyo", name: "ТОКИО", tz: "Asia/Tokyo", market: { open: 9, close: 15 } },
     { key: "frankfurt", name: "ФРАНКФУРТ", tz: "Europe/Berlin", market: { open: 9, close: 17.5 } },
