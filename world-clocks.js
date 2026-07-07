@@ -1,28 +1,20 @@
-// world-clocks.js — БҮРЭН БИЕ ДААСАН хувилбар (Scoreboard/LED digital дизайн)
+// world-clocks.js — БҮРЭН БИЕ ДААСАН хувилбар
 // index.html-д ЗӨВХӨН доорх 1 МӨРИЙГ нэмнэ (</body>-ийн өмнө):
 //   <script src="world-clocks.js"></script>
 // Энэ файл өөрөө HTML болон CSS-ээ автоматаар DOM-д нэмж, .ticker-tape
 // (урсдаг ханшийн зурвас)-ийн ДАРАА байрлуулна. Секунд тутам шинэчлэгдэж ажиллана.
-// Улаанбаатар (эхний) болон Нью-Йорк (сүүлийн) цаг том, тодруулагдсан "hero" загвартай.
+// Зохион байгуулалт: [Аналог цаг] — баруун талд нь [Улсын нэр дээр, дижитал тоо доор].
+// Бүгд нэг мөрөнд, мөрний өргөнд тэнцүү тарааж сунгасан (flex: 1).
 
 (function () {
   const CITIES = [
-    { key: "ub", name: "УЛААНБААТАР", tz: "Asia/Ulaanbaatar", hero: true },
-    { key: "hk", name: "ХОНГ КОНГ", tz: "Asia/Hong_Kong", hero: false },
-    { key: "tokyo", name: "ТОКИО", tz: "Asia/Tokyo", hero: false },
-    { key: "frankfurt", name: "ФРАНКФУРТ", tz: "Europe/Berlin", hero: false },
-    { key: "london", name: "ЛОНДОН", tz: "Europe/London", hero: false },
-    { key: "ny", name: "НЬЮ-ЙОРК", tz: "America/New_York", hero: true },
+    { key: "ub", name: "УЛААНБААТАР", tz: "Asia/Ulaanbaatar" },
+    { key: "hk", name: "ХОНГ КОНГ", tz: "Asia/Hong_Kong" },
+    { key: "tokyo", name: "ТОКИО", tz: "Asia/Tokyo" },
+    { key: "frankfurt", name: "ФРАНКФУРТ", tz: "Europe/Berlin" },
+    { key: "london", name: "ЛОНДОН", tz: "Europe/London" },
+    { key: "ny", name: "НЬЮ-ЙОРК", tz: "America/New_York" },
   ];
-
-  function loadFont() {
-    if (document.getElementById("wc-orbitron-font")) return;
-    const link = document.createElement("link");
-    link.id = "wc-orbitron-font";
-    link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap";
-    document.head.appendChild(link);
-  }
 
   function injectStyles() {
     if (document.getElementById("world-clocks-styles")) return;
@@ -31,64 +23,75 @@
     style.textContent = `
       .world-clocks-strip {
         display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 20px;
+        background: var(--panel-2, #F1ECE1);
+        border-bottom: 1px solid var(--line, #E7E0D0);
+      }
+      .wc-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1 1 0;
+        min-width: 0;
         justify-content: center;
-        align-items: stretch;
-        gap: 10px;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        padding: 16px 20px;
-        background: #0e0b07;
-        border-bottom: 1px solid #2a2118;
-        scrollbar-width: thin;
       }
-      .world-clocks-strip::-webkit-scrollbar { height: 4px; }
-      .world-clocks-strip::-webkit-scrollbar-thumb { background: #2a2118; border-radius: 4px; }
-      .wc-card {
-        background: #14100a;
-        border: 1px solid #2a2118;
-        border-radius: 8px;
-        padding: 10px 8px;
-        text-align: center;
-        flex-shrink: 0;
-        min-width: 92px;
-      }
-      .wc-card.wc-hero {
-        background: #1a1409;
-        border: 1px solid #3d2f18;
-        min-width: 112px;
+      .wc-face-wrap { width: 46px; height: 46px; flex-shrink: 0; }
+      .wc-face { width: 46px; height: 46px; display: block; }
+      .wc-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
       }
       .wc-city {
-        font-family: var(--sans, sans-serif);
-        font-size: 9px;
-        color: #8a7a5c;
-        margin-bottom: 6px;
-        white-space: nowrap;
-        letter-spacing: 0.5px;
+        font-family: var(--mono, ui-monospace, monospace);
+        font-size: 10px;
+        letter-spacing: 0.4px;
+        color: var(--text-dim, #7A7266);
         font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
-      .wc-time {
-        font-family: 'Orbitron', var(--mono, monospace);
-        font-size: 19px;
-        font-weight: 700;
-        color: #e8b23d;
-        letter-spacing: 1px;
-        text-shadow: 0 0 8px rgba(232,178,61,0.45);
+      .wc-digital {
+        font-family: var(--mono, ui-monospace, monospace);
+        font-size: 14px;
+        color: var(--text, #1B1712);
+        font-weight: 500;
+        letter-spacing: 0.3px;
       }
-      .wc-card.wc-hero .wc-time {
-        font-size: 25px;
-        font-weight: 900;
-        color: #ff8a3d;
-        text-shadow: 0 0 12px rgba(255,138,61,0.55);
+      @media (max-width: 900px) {
+        .world-clocks-strip { flex-wrap: wrap; justify-content: center; }
+        .wc-item { flex: 0 0 auto; }
       }
       @media (max-width: 640px) {
-        .world-clocks-strip { gap: 8px; padding: 12px 14px; justify-content: flex-start; }
-        .wc-card { min-width: 78px; padding: 8px 6px; }
-        .wc-card.wc-hero { min-width: 92px; }
-        .wc-time { font-size: 16px; }
-        .wc-card.wc-hero .wc-time { font-size: 20px; }
+        .wc-face-wrap, .wc-face { width: 36px; height: 36px; }
+        .wc-city { font-size: 9px; }
+        .wc-digital { font-size: 12px; }
       }
     `;
     document.head.appendChild(style);
+  }
+
+  function buildClockSVG(city) {
+    return `
+      <svg class="wc-face" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="32" cy="32" r="30" fill="var(--panel, #fff)" stroke="var(--gold, #B8862B)" stroke-width="2"/>
+        <g stroke="var(--text-dim, #7A7266)" stroke-width="1.4" stroke-linecap="round">
+          <line x1="32" y1="5" x2="32" y2="9"/>
+          <line x1="32" y1="55" x2="32" y2="59"/>
+          <line x1="5" y1="32" x2="9" y2="32"/>
+          <line x1="55" y1="32" x2="59" y2="32"/>
+        </g>
+        <line id="wc-hour-${city.key}" x1="32" y1="32" x2="32" y2="18" stroke="var(--text, #1B1712)" stroke-width="2.6" stroke-linecap="round"/>
+        <line id="wc-min-${city.key}" x1="32" y1="32" x2="32" y2="11" stroke="var(--text, #1B1712)" stroke-width="1.8" stroke-linecap="round"/>
+        <line id="wc-sec-${city.key}" x1="32" y1="32" x2="32" y2="9" stroke="var(--loss, #C4463A)" stroke-width="1" stroke-linecap="round"/>
+        <circle cx="32" cy="32" r="2.4" fill="var(--gold, #B8862B)"/>
+      </svg>
+    `;
   }
 
   function injectSection() {
@@ -99,9 +102,12 @@
     strip.setAttribute("aria-hidden", "true");
 
     strip.innerHTML = CITIES.map((c) => `
-      <div class="wc-card${c.hero ? " wc-hero" : ""}">
-        <div class="wc-city">${c.name}</div>
-        <div class="wc-time" id="wc-time-${c.key}">--:--</div>
+      <div class="wc-item">
+        <div class="wc-face-wrap">${buildClockSVG(c)}</div>
+        <div class="wc-info">
+          <span class="wc-city">${c.name}</span>
+          <span class="wc-digital" id="wc-digital-${c.key}">--:--</span>
+        </div>
       </div>
     `).join("");
 
@@ -113,26 +119,47 @@
     }
   }
 
+  function getTimeParts(timeZone) {
+    const fmt = new Intl.DateTimeFormat("en-GB", {
+      timeZone,
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    const parts = fmt.formatToParts(new Date());
+    const get = (type) => Number(parts.find((p) => p.type === type).value);
+    return { h: get("hour") % 24, m: get("minute"), s: get("second") };
+  }
+
   function updateClocks() {
     CITIES.forEach((c) => {
-      const el = document.getElementById(`wc-time-${c.key}`);
-      if (!el) return;
+      let h, m, s;
       try {
-        const fmt = new Intl.DateTimeFormat("en-GB", {
-          timeZone: c.tz,
-          hour12: false,
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-        el.textContent = fmt.format(new Date());
+        ({ h, m, s } = getTimeParts(c.tz));
       } catch (err) {
-        // timezone дэмжигдэхгүй хуучин browser бол алгасна
+        return;
+      }
+
+      const hourDeg = (h % 12) * 30 + m * 0.5;
+      const minDeg = m * 6 + s * 0.1;
+      const secDeg = s * 6;
+
+      const hourEl = document.getElementById(`wc-hour-${c.key}`);
+      const minEl = document.getElementById(`wc-min-${c.key}`);
+      const secEl = document.getElementById(`wc-sec-${c.key}`);
+      const digitalEl = document.getElementById(`wc-digital-${c.key}`);
+
+      if (hourEl) hourEl.setAttribute("transform", `rotate(${hourDeg} 32 32)`);
+      if (minEl) minEl.setAttribute("transform", `rotate(${minDeg} 32 32)`);
+      if (secEl) secEl.setAttribute("transform", `rotate(${secDeg} 32 32)`);
+      if (digitalEl) {
+        digitalEl.textContent = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
       }
     });
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    loadFont();
     injectStyles();
     injectSection();
     updateClocks();
