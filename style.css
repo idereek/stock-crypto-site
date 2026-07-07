@@ -174,7 +174,7 @@ body {
 /* ---------- Hero / Search ---------- */
 .hero {
   text-align: center;
-  padding: 88px 24px 44px;
+  padding: 56px 24px 44px;
   position: relative;
 }
 .hero-title {
@@ -197,7 +197,7 @@ body {
 .search-wrap {
   position: relative;
   max-width: 580px;
-  margin: 0 auto;
+  margin: 14px 0 0 0;
 }
 .search-icon {
   position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
@@ -242,12 +242,7 @@ body {
 .s-type { color: var(--text-dim); font-family: var(--sans); font-size: 12px; }
 
 .hero-strip {
-  display: flex;
-  justify-content: center;
-  gap: 28px;
-  margin-top: 32px;
-  flex-wrap: wrap;
-  min-height: 20px;
+  display: none;
 }
 .hero-stat {
   display: flex;
