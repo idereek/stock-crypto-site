@@ -52,10 +52,11 @@
       .wc-info {
         display: flex;
         flex-direction: column;
+        align-items: center;
         gap: 4px;
         min-width: 0;
       }
-      .wc-city-row { display: flex; align-items: center; gap: 5px; padding-bottom: 4px; border-bottom: 1px solid var(--line, #E7E0D0); }
+      .wc-city-row { display: flex; align-items: center; justify-content: center; padding-bottom: 4px; border-bottom: 1px solid var(--line, #E7E0D0); width: 100%; }
       .wc-city {
         font-family: var(--mono, ui-monospace, monospace);
         font-size: 10px;
@@ -65,24 +66,40 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        text-align: center;
       }
       .wc-market-badge {
         font-family: var(--sans, sans-serif);
         font-size: 8.5px;
         font-weight: 700;
         letter-spacing: 0.3px;
-        padding: 1px 5px;
-        border-radius: 3px;
         white-space: nowrap;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
       }
-      .wc-market-badge.open { background: var(--gain-tint, rgba(18,148,107,0.12)); color: var(--gain, #12946B); }
-      .wc-market-badge.closed { background: var(--panel, #fff); color: var(--text-dim, #7A7266); border: 1px solid var(--line, #E7E0D0); }
+      .wc-market-badge.open { color: var(--gain, #12946B); }
+      .wc-market-badge.closed { color: var(--loss, #C4463A); }
+      .wc-market-flash {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--gain, #12946B);
+        flex-shrink: 0;
+        animation: wc-flash 1s steps(1, end) infinite;
+      }
+      @keyframes wc-flash {
+        0%, 49% { opacity: 1; }
+        50%, 100% { opacity: 0.2; }
+      }
       .wc-digital {
         font-family: 'Orbitron', var(--mono, ui-monospace, monospace);
         font-size: 17px;
         color: var(--text, #1B1712);
         font-weight: 700;
         letter-spacing: 0.5px;
+        text-align: center;
       }
       @media (max-width: 900px) {
         .world-clocks-strip { flex-wrap: wrap; justify-content: center; }
@@ -130,7 +147,7 @@
             <span class="wc-city">${c.name}</span>
           </span>
           <span class="wc-digital" id="wc-digital-${c.key}">--:--</span>
-          ${c.market ? `<span class="wc-market-badge closed" id="wc-market-${c.key}">ХААЛТТАЙ</span>` : ""}
+          ${c.market ? `<span class="wc-market-badge closed" id="wc-market-${c.key}"><span class="wc-market-flash" id="wc-market-flash-${c.key}" style="display:none;"></span><span id="wc-market-text-${c.key}">БИРЖ ХААЛТТАЙ</span></span>` : ""}
         </div>
       </div>
     `).join("");
@@ -191,7 +208,10 @@
         const isOpen = isWeekday && decimalHour >= c.market.open && decimalHour < c.market.close;
         marketEl.classList.toggle("open", isOpen);
         marketEl.classList.toggle("closed", !isOpen);
-        marketEl.textContent = isOpen ? "НЭЭЛТТЭЙ" : "ХААЛТТАЙ";
+        const flashEl = document.getElementById(`wc-market-flash-${c.key}`);
+        const textEl = document.getElementById(`wc-market-text-${c.key}`);
+        if (flashEl) flashEl.style.display = isOpen ? "inline-block" : "none";
+        if (textEl) textEl.textContent = isOpen ? "БИРЖ НЭЭЛТТЭЙ" : "БИРЖ ХААЛТТАЙ";
       }
     });
   }
