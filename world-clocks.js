@@ -16,6 +16,15 @@
     { key: "ny", name: "НЬЮ-ЙОРК", tz: "America/New_York" },
   ];
 
+  function loadFont() {
+    if (document.getElementById("wc-digital-font")) return;
+    const link = document.createElement("link");
+    link.id = "wc-digital-font";
+    link.rel = "stylesheet";
+    link.href = "https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&display=swap";
+    document.head.appendChild(link);
+  }
+
   function injectStyles() {
     if (document.getElementById("world-clocks-styles")) return;
     const style = document.createElement("style");
@@ -33,17 +42,17 @@
       .wc-item {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 14px;
         flex: 1 1 0;
         min-width: 0;
         justify-content: center;
       }
-      .wc-face-wrap { width: 46px; height: 46px; flex-shrink: 0; }
-      .wc-face { width: 46px; height: 46px; display: block; }
+      .wc-face-wrap { width: 58px; height: 58px; flex-shrink: 0; }
+      .wc-face { width: 58px; height: 58px; display: block; }
       .wc-info {
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 4px;
         min-width: 0;
       }
       .wc-city {
@@ -55,22 +64,24 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        padding-bottom: 4px;
+        border-bottom: 1px solid var(--line, #E7E0D0);
       }
       .wc-digital {
-        font-family: var(--mono, ui-monospace, monospace);
-        font-size: 14px;
+        font-family: 'Orbitron', var(--mono, ui-monospace, monospace);
+        font-size: 17px;
         color: var(--text, #1B1712);
-        font-weight: 500;
-        letter-spacing: 0.3px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
       }
       @media (max-width: 900px) {
         .world-clocks-strip { flex-wrap: wrap; justify-content: center; }
         .wc-item { flex: 0 0 auto; }
       }
       @media (max-width: 640px) {
-        .wc-face-wrap, .wc-face { width: 36px; height: 36px; }
+        .wc-face-wrap, .wc-face { width: 46px; height: 46px; }
         .wc-city { font-size: 9px; }
-        .wc-digital { font-size: 12px; }
+        .wc-digital { font-size: 14px; }
       }
     `;
     document.head.appendChild(style);
@@ -160,6 +171,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", function () {
+    loadFont();
     injectStyles();
     injectSection();
     updateClocks();
