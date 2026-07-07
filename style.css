@@ -176,10 +176,6 @@ body {
   text-align: center;
   padding: 88px 24px 44px;
   position: relative;
-  background-image:
-    linear-gradient(var(--bg) 0, transparent 140px),
-    repeating-linear-gradient(0deg, var(--line) 0, var(--line) 1px, transparent 1px, transparent 44px);
-  background-position: 0 0;
 }
 .hero-title {
   font-family: var(--display);
