@@ -174,7 +174,7 @@ body {
 /* ---------- Hero / Search ---------- */
 .hero {
   text-align: center;
-  padding: 56px 24px 44px;
+  padding: 120px 24px 44px;
   position: relative;
 }
 .hero-title {
@@ -193,6 +193,10 @@ body {
   margin-top: 6px;
   margin-bottom: 10px;
   letter-spacing: 0.4px;
+  text-align: left;
+  max-width: 580px;
+  margin-left: 0;
+  margin-right: auto;
 }
 .search-wrap {
   position: relative;
