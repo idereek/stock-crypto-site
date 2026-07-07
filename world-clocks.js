@@ -21,7 +21,7 @@
     const link = document.createElement("link");
     link.id = "wc-digital-font";
     link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&display=swap";
+    link.href = "https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap";
     document.head.appendChild(link);
   }
 
@@ -42,24 +42,24 @@
       .wc-item {
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 16px;
         flex: 1 1 0;
         min-width: 0;
         justify-content: center;
       }
-      .wc-face-wrap { width: 58px; height: 58px; flex-shrink: 0; }
-      .wc-face { width: 58px; height: 58px; display: block; }
+      .wc-face-wrap { width: 68px; height: 68px; flex-shrink: 0; }
+      .wc-face { width: 68px; height: 68px; display: block; }
       .wc-info {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 4px;
+        gap: 5px;
         min-width: 0;
       }
-      .wc-city-row { display: flex; align-items: center; justify-content: center; padding-bottom: 4px; border-bottom: 1px solid var(--line, #E7E0D0); width: 100%; }
+      .wc-city-row { display: flex; align-items: center; justify-content: center; padding-bottom: 5px; border-bottom: 1px solid var(--line, #E7E0D0); width: 100%; }
       .wc-city {
         font-family: var(--mono, ui-monospace, monospace);
-        font-size: 10px;
+        font-size: 11px;
         letter-spacing: 0.4px;
         color: var(--text-dim, #7A7266);
         font-weight: 600;
@@ -70,7 +70,7 @@
       }
       .wc-market-badge {
         font-family: var(--sans, sans-serif);
-        font-size: 8.5px;
+        font-size: 9.5px;
         font-weight: 700;
         letter-spacing: 0.3px;
         white-space: nowrap;
@@ -94,21 +94,38 @@
         50%, 100% { opacity: 0.2; }
       }
       .wc-digital {
-        font-family: 'Orbitron', var(--mono, ui-monospace, monospace);
-        font-size: 17px;
+        font-family: 'Rajdhani', var(--mono, ui-monospace, monospace);
+        font-size: 21px;
         color: var(--text, #1B1712);
         font-weight: 700;
         letter-spacing: 0.5px;
         text-align: center;
+        font-variant-numeric: normal;
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        gap: 1px;
+      }
+      .wc-colon {
+        display: inline-block;
+        animation: wc-flash 1s steps(1, end) infinite;
+      }
+      .wc-ampm {
+        font-family: var(--sans, sans-serif);
+        font-size: 11px;
+        font-weight: 700;
+        margin-left: 3px;
+        color: var(--text-dim, #7A7266);
       }
       @media (max-width: 900px) {
         .world-clocks-strip { flex-wrap: wrap; justify-content: center; }
         .wc-item { flex: 0 0 auto; }
       }
       @media (max-width: 640px) {
-        .wc-face-wrap, .wc-face { width: 46px; height: 46px; }
-        .wc-city { font-size: 9px; }
-        .wc-digital { font-size: 14px; }
+        .wc-face-wrap, .wc-face { width: 54px; height: 54px; }
+        .wc-city { font-size: 10px; }
+        .wc-digital { font-size: 17px; }
+        .wc-ampm { font-size: 9px; }
       }
     `;
     document.head.appendChild(style);
@@ -146,7 +163,9 @@
           <span class="wc-city-row">
             <span class="wc-city">${c.name}</span>
           </span>
-          <span class="wc-digital" id="wc-digital-${c.key}">--:--</span>
+          <span class="wc-digital">
+            <span id="wc-h-${c.key}">--</span><span class="wc-colon">:</span><span id="wc-m-${c.key}">--</span><span class="wc-ampm" id="wc-ampm-${c.key}"></span>
+          </span>
           ${c.market ? `<span class="wc-market-badge closed" id="wc-market-${c.key}"><span class="wc-market-flash" id="wc-market-flash-${c.key}" style="display:none;"></span><span id="wc-market-text-${c.key}">БИРЖ ХААЛТТАЙ</span></span>` : ""}
         </div>
       </div>
@@ -193,14 +212,20 @@
       const hourEl = document.getElementById(`wc-hour-${c.key}`);
       const minEl = document.getElementById(`wc-min-${c.key}`);
       const secEl = document.getElementById(`wc-sec-${c.key}`);
-      const digitalEl = document.getElementById(`wc-digital-${c.key}`);
+      const hEl = document.getElementById(`wc-h-${c.key}`);
+      const mEl = document.getElementById(`wc-m-${c.key}`);
+      const ampmEl = document.getElementById(`wc-ampm-${c.key}`);
       const marketEl = document.getElementById(`wc-market-${c.key}`);
 
       if (hourEl) hourEl.setAttribute("transform", `rotate(${hourDeg} 32 32)`);
       if (minEl) minEl.setAttribute("transform", `rotate(${minDeg} 32 32)`);
       if (secEl) secEl.setAttribute("transform", `rotate(${secDeg} 32 32)`);
-      if (digitalEl) {
-        digitalEl.textContent = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+      if (hEl && mEl && ampmEl) {
+        let hour12 = h % 12;
+        if (hour12 === 0) hour12 = 12;
+        hEl.textContent = String(hour12).padStart(2, "0");
+        mEl.textContent = String(m).padStart(2, "0");
+        ampmEl.textContent = h < 12 ? "AM" : "PM";
       }
       if (marketEl && c.market) {
         const decimalHour = h + m / 60;
