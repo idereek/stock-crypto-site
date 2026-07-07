@@ -66,14 +66,17 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      .wc-market-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        flex-shrink: 0;
+      .wc-market-badge {
+        font-family: var(--sans, sans-serif);
+        font-size: 8.5px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        padding: 1px 5px;
+        border-radius: 3px;
+        white-space: nowrap;
       }
-      .wc-market-dot.open { background: var(--gain, #12946B); }
-      .wc-market-dot.closed { background: var(--text-dim, #7A7266); opacity: 0.4; }
+      .wc-market-badge.open { background: var(--gain-tint, rgba(18,148,107,0.12)); color: var(--gain, #12946B); }
+      .wc-market-badge.closed { background: var(--panel, #fff); color: var(--text-dim, #7A7266); border: 1px solid var(--line, #E7E0D0); }
       .wc-digital {
         font-family: 'Orbitron', var(--mono, ui-monospace, monospace);
         font-size: 17px;
@@ -125,9 +128,9 @@
         <div class="wc-info">
           <span class="wc-city-row">
             <span class="wc-city">${c.name}</span>
-            ${c.market ? `<span class="wc-market-dot closed" id="wc-market-${c.key}"></span>` : ""}
           </span>
           <span class="wc-digital" id="wc-digital-${c.key}">--:--</span>
+          ${c.market ? `<span class="wc-market-badge closed" id="wc-market-${c.key}">ХААЛТТАЙ</span>` : ""}
         </div>
       </div>
     `).join("");
@@ -188,7 +191,7 @@
         const isOpen = isWeekday && decimalHour >= c.market.open && decimalHour < c.market.close;
         marketEl.classList.toggle("open", isOpen);
         marketEl.classList.toggle("closed", !isOpen);
-        marketEl.title = isOpen ? "Бирж нээлттэй" : "Бирж хаалттай";
+        marketEl.textContent = isOpen ? "НЭЭЛТТЭЙ" : "ХААЛТТАЙ";
       }
     });
   }
