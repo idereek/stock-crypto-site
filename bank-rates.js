@@ -38,8 +38,9 @@
       .bank-rates-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 560px; border: 1px solid #e5e2da; }
       .bank-rates-table th, .bank-rates-table td { padding: 8px 10px; text-align: left; white-space: nowrap; border: 1px solid #e5e2da; }
       .bank-rates-table th:first-child, .bank-rates-table td:first-child { font-weight: 600; }
-      .bank-rates-currency { display: flex; align-items: center; gap: 6px; }
-      .bank-rates-currency img { display: inline-block; }
+      .bank-rates-currency { display: grid; grid-template-columns: 18px 22px auto; align-items: center; gap: 6px; }
+      .bank-rates-currency span:first-child { text-align: center; }
+      .bank-rates-currency img { display: block; }
       .bank-rates-table thead tr:first-child th { font-weight: 700; color: #1a1a1a; text-align: center; }
       .bank-rates-table thead tr:last-child th { font-size: 0.78rem; font-weight: 500; color: #6b6b6b; }
       .bank-rates-best { color: #1a1a1a; font-weight: 400; }
