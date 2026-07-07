@@ -42,7 +42,8 @@
       .bank-rates-currency span:first-child { text-align: center; }
       .bank-rates-currency img { display: block; }
       .bank-rates-table thead tr:first-child th { font-weight: 700; color: #1a1a1a; text-align: center; }
-      .bank-rates-table thead tr:last-child th { font-size: 0.78rem; font-weight: 500; color: #6b6b6b; }
+      .bank-rates-table thead tr:last-child th { font-size: 0.78rem; font-weight: 500; color: #6b6b6b; text-align: center; }
+      .bank-rates-valuta-th { vertical-align: middle; }
       .bank-rates-best { color: #1a1a1a; font-weight: 400; }
       .bank-rates-error { font-size: 0.9rem; color: #6b6b6b; padding: 12px 0; }
     `;
@@ -105,13 +106,13 @@
     });
 
     let html = '<div class="bank-rates-table-wrap"><table class="bank-rates-table">';
-    html += "<thead><tr><th>Валют</th>";
+    html += '<thead><tr><th rowspan="2" class="bank-rates-valuta-th">ВАЛЮТ</th>';
     banksPresent.forEach((b) => {
       const rawLabel = rows.find((r) => r.bank === b)?.bank_name_mn || b;
       const label = b === "mongolbank" ? "Монголбанк" : rawLabel;
       html += `<th colspan="2">${label}</th>`;
     });
-    html += "</tr><tr><th></th>";
+    html += "</tr><tr>";
     banksPresent.forEach(() => {
       html += "<th>Авах</th><th>Зарах</th>";
     });
