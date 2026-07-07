@@ -15,12 +15,17 @@
     AUD: "$", NZD: "$", HKD: "$", SGD: "$",
     CHF: "₣", INR: "₹", KZT: "₸",
   };
-  const CURRENCY_FLAGS = {
-    USD: "🇺🇸", EUR: "🇪🇺", GBP: "🇬🇧", CNY: "🇨🇳",
-    RUB: "🇷🇺", JPY: "🇯🇵", KRW: "🇰🇷", CAD: "🇨🇦",
-    AUD: "🇦🇺", NZD: "🇳🇿", HKD: "🇭🇰", SGD: "🇸🇬",
-    CHF: "🇨🇭", INR: "🇮🇳", KZT: "🇰🇿",
+  const CURRENCY_COUNTRY_CODE = {
+    USD: "us", EUR: "eu", GBP: "gb", CNY: "cn",
+    RUB: "ru", JPY: "jp", KRW: "kr", CAD: "ca",
+    AUD: "au", NZD: "nz", HKD: "hk", SGD: "sg",
+    CHF: "ch", INR: "in", KZT: "kz",
   };
+  function flagImg(currency) {
+    const cc = CURRENCY_COUNTRY_CODE[currency];
+    if (!cc) return "";
+    return `<img src="https://flagcdn.com/w20/${cc}.png" alt="" width="18" style="vertical-align:middle;border-radius:2px;">`;
+  }
 
   function injectStyles() {
     if (document.getElementById("bank-rates-styles")) return;
@@ -110,7 +115,7 @@
     html += "</tr></thead><tbody>";
 
     currencies.forEach((currency) => {
-      html += `<tr><td class="bank-rates-currency">${CURRENCY_SYMBOLS[currency] || ""} ${CURRENCY_FLAGS[currency] || ""} ${currency}</td>`;
+      html += `<tr><td class="bank-rates-currency">${CURRENCY_SYMBOLS[currency] || ""} ${flagImg(currency)} ${currency}</td>`;
       const cellsForCurrency = banksPresent.map((b) => byKey[b + "__" + currency]);
       const buyValues = cellsForCurrency.map((c) => c?.buy_cash).filter((v) => v != null);
       const sellValues = cellsForCurrency.map((c) => c?.sell_cash).filter((v) => v != null);
