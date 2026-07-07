@@ -45,7 +45,7 @@ const I18N = {
     hero_pre: "Хөрөнгийн зах зээлийг ",
     hero_accent: "эх хэлээрээ",
     hero_post: " уншъя",
-    eyebrow: "Жишээ: AAPL эсвэл Apple, BTC эсвэл Bitcoin, TSLA эсвэл Tesla",
+    eyebrow: "Ticker эсвэл нэрээр хайх — жишээ: AAPL эсвэл Apple, BTC эсвэл Bitcoin, TSLA эсвэл Tesla",
     search_placeholder: "Хайх...",
     indices_heading: "Дэлхийн зах зээл",
     index_hk: "Хонг Конг",
