@@ -18,12 +18,12 @@
       .bank-rates-section { margin: 32px auto; max-width: 960px; padding: 0 16px; }
       .bank-rates-section h2 { font-size: 1.3rem; margin-bottom: 12px; }
       .bank-rates-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      .bank-rates-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 560px; }
-      .bank-rates-table th, .bank-rates-table td { padding: 8px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid #e5e2da; }
+      .bank-rates-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 560px; border: 1px solid #e5e2da; }
+      .bank-rates-table th, .bank-rates-table td { padding: 8px 10px; text-align: right; white-space: nowrap; border: 1px solid #e5e2da; }
       .bank-rates-table th:first-child, .bank-rates-table td:first-child { text-align: left; font-weight: 600; }
-      .bank-rates-table thead tr:first-child th { font-weight: 700; color: #1a1a1a; }
+      .bank-rates-table thead tr:first-child th { font-weight: 700; color: #1a1a1a; text-align: center; }
       .bank-rates-table thead tr:last-child th { font-size: 0.78rem; font-weight: 500; color: #6b6b6b; }
-      .bank-rates-best { color: #1a1a1a; font-weight: 700; }
+      .bank-rates-best { color: #1a1a1a; font-weight: 400; }
       .bank-rates-error { font-size: 0.9rem; color: #6b6b6b; padding: 12px 0; }
     `;
     document.head.appendChild(style);
@@ -34,7 +34,7 @@
     const section = document.createElement("section");
     section.className = "bank-rates-section";
     section.innerHTML =
-      '<h2>Банкны ханшийн харьцуулалт</h2>' +
+      '<h2>Ханшийн мэдээлэл</h2>' +
       '<div id="bankRatesContainer"><p class="bank-rates-error">Ачаалж байна...</p></div>';
 
     const footer = document.querySelector("footer");
