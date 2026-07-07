@@ -8,12 +8,12 @@
 
 (function () {
   const CITIES = [
-    { key: "ub", name: "УЛААНБААТАР", tz: "Asia/Ulaanbaatar", market: { open: 10, close: 13 } },
-    { key: "hk", name: "ХОНГ КОНГ", tz: "Asia/Hong_Kong", market: { open: 9.5, close: 16 } },
-    { key: "tokyo", name: "ТОКИО", tz: "Asia/Tokyo", market: { open: 9, close: 15 } },
-    { key: "frankfurt", name: "ФРАНКФУРТ", tz: "Europe/Berlin", market: { open: 9, close: 17.5 } },
-    { key: "london", name: "ЛОНДОН", tz: "Europe/London", market: { open: 8, close: 16.5 } },
-    { key: "ny", name: "НЬЮ-ЙОРК", tz: "America/New_York", market: { open: 9.5, close: 16 } },
+    { key: "ub", name: "УЛААНБААТАР", tz: "Asia/Ulaanbaatar", market: { open: 10, close: 13 }, exchange: "МХБ", exchangeUrl: "https://mse.mn" },
+    { key: "hk", name: "ХОНГ КОНГ", tz: "Asia/Hong_Kong", market: { open: 9.5, close: 16 }, exchange: "HKEX", exchangeUrl: "https://www.hkex.com.hk" },
+    { key: "tokyo", name: "ТОКИО", tz: "Asia/Tokyo", market: { open: 9, close: 15 }, exchange: "JPX", exchangeUrl: "https://www.jpx.co.jp" },
+    { key: "frankfurt", name: "ФРАНКФУРТ", tz: "Europe/Berlin", market: { open: 9, close: 17.5 }, exchange: "Deutsche Börse", exchangeUrl: "https://www.deutsche-boerse.com" },
+    { key: "london", name: "ЛОНДОН", tz: "Europe/London", market: { open: 8, close: 16.5 }, exchange: "LSE", exchangeUrl: "https://www.londonstockexchange.com" },
+    { key: "ny", name: "НЬЮ-ЙОРК", tz: "America/New_York", market: { open: 9.5, close: 16 }, exchange: "NYSE", exchangeUrl: "https://www.nyse.com" },
   ];
 
   function loadFont() {
@@ -117,6 +117,16 @@
         margin-left: 3px;
         color: var(--text-dim, #7A7266);
       }
+      .wc-exchange-link {
+        font-family: var(--sans, sans-serif);
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        color: var(--text-dim, #7A7266);
+        text-decoration: none;
+        border-bottom: 1px dotted var(--text-dim, #7A7266);
+      }
+      .wc-exchange-link:hover { color: var(--gold, #B8862B); border-bottom-color: var(--gold, #B8862B); }
       @media (max-width: 900px) {
         .world-clocks-strip { flex-wrap: wrap; justify-content: center; }
         .wc-item { flex: 0 0 auto; }
@@ -167,6 +177,7 @@
             <span id="wc-h-${c.key}">--</span><span class="wc-colon">:</span><span id="wc-m-${c.key}">--</span><span class="wc-ampm" id="wc-ampm-${c.key}"></span>
           </span>
           ${c.market ? `<span class="wc-market-badge closed" id="wc-market-${c.key}"><span class="wc-market-flash" id="wc-market-flash-${c.key}" style="display:none;"></span><span id="wc-market-text-${c.key}">БИРЖ ХААЛТТАЙ</span></span>` : ""}
+          ${c.exchange ? `<a class="wc-exchange-link" href="${c.exchangeUrl}" target="_blank" rel="noopener noreferrer">${c.exchange}</a>` : ""}
         </div>
       </div>
     `).join("");
