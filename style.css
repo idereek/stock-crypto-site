@@ -24,12 +24,7 @@
 
 body {
   margin: 0;
-  background-color: var(--bg);
-  background-image: url("bg-pattern.svg");
-  background-repeat: repeat;
-  background-attachment: fixed;
-  background-size: 600px 300px;
-  background-blend-mode: multiply;
+  background-color: #FFFFFF;
   color: var(--text);
   font-family: var(--sans);
   min-height: 100vh;
