@@ -8,7 +8,7 @@
   const BANK_ORDER = [
     "mongolbank", "tdb", "golomt", "khaan", "state",
   ];
-  const DEFAULT_CURRENCIES = ["USD", "EUR", "CNY", "RUB", "JPY", "KRW"];
+  const DEFAULT_CURRENCIES = ["USD", "EUR", "GBP", "CNY", "RUB", "JPY", "KRW"];
 
   function injectStyles() {
     if (document.getElementById("bank-rates-styles")) return;
@@ -23,8 +23,7 @@
       .bank-rates-table th:first-child, .bank-rates-table td:first-child { text-align: left; font-weight: 600; }
       .bank-rates-table thead tr:first-child th { font-weight: 700; color: #1a1a1a; }
       .bank-rates-table thead tr:last-child th { font-size: 0.78rem; font-weight: 500; color: #6b6b6b; }
-      .bank-rates-best { color: #b8860b; font-weight: 700; }
-      .bank-rates-updated, .bank-rates-disclaimer { font-size: 0.78rem; color: #6b6b6b; margin-top: 8px; }
+      .bank-rates-best { color: #1a1a1a; font-weight: 700; }
       .bank-rates-error { font-size: 0.9rem; color: #6b6b6b; padding: 12px 0; }
     `;
     document.head.appendChild(style);
@@ -88,7 +87,8 @@
     let html = '<div class="bank-rates-table-wrap"><table class="bank-rates-table">';
     html += "<thead><tr><th>Валют</th>";
     banksPresent.forEach((b) => {
-      const label = rows.find((r) => r.bank === b)?.bank_name_mn || b;
+      const rawLabel = rows.find((r) => r.bank === b)?.bank_name_mn || b;
+      const label = b === "mongolbank" ? "Монголбанк" : rawLabel;
       html += `<th colspan="2">${label}</th>`;
     });
     html += "</tr><tr><th></th>";
@@ -119,14 +119,6 @@
     });
 
     html += "</tbody></table></div>";
-
-    const updatedAt = rows.map((r) => r.updated_at).sort().pop();
-    if (updatedAt) {
-      const d = new Date(updatedAt);
-      html += `<p class="bank-rates-updated">Сүүлд шинэчлэгдсэн: ${d.toLocaleString("mn-MN")}</p>`;
-    }
-    html +=
-      '<p class="bank-rates-disclaimer">Энэхүү мэдээлэл нь лавлагааны зориулалттай, банкны бодит арилжааны ханш салбар/цахим сувгаас ялгаатай байж болно.</p>';
 
     container.innerHTML = html;
   }
