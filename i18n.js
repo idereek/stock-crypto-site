@@ -42,9 +42,9 @@ const I18N = {
         : "7 хоногийн дундаж түвшинд";
       return `Сүүлийн 7 хоногт ${d.weekTrendUp ? "өссөн" : "буурсан"} чиглэлтэй байна (${d.weekChangePct}%). Одоогийн үнэ ${posText} байна. Сүүлийн 24 цагт ${d.trend24hUp ? "өссөн" : "буурсан"} (${d.change24hPct}%). Долоо хоногийн хэлбэлзэл ойролцоогоор ${d.volatilityPct}%.`;
     },
-    hero_pre: "Зах зээлийг ",
+    hero_pre: "Хөрөнгийн зах зээлийг ",
     hero_accent: "эх хэлээрээ",
-    hero_post: " уншина",
+    hero_post: " уншъя",
     eyebrow: "Ticker эсвэл нэрээр хайх — жишээ: AAPL, Apple, Bitcoin, BTC, Tesla",
     search_placeholder: "Хайх...",
     indices_heading: "Дэлхийн зах зээл",
