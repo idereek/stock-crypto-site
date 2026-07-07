@@ -10,10 +10,10 @@
   ];
   const DEFAULT_CURRENCIES = ["USD", "EUR", "GBP", "CNY", "RUB", "JPY", "KRW"];
   const CURRENCY_FLAGS = {
-    USD: "🇺🇸", EUR: "🇪🇺", GBP: "🇬🇧", CNY: "🇨🇳",
-    RUB: "🇷🇺", JPY: "🇯🇵", KRW: "🇰🇷", CAD: "🇨🇦",
-    AUD: "🇦🇺", NZD: "🇳🇿", HKD: "🇭🇰", SGD: "🇸🇬",
-    CHF: "🇨🇭", INR: "🇮🇳", KZT: "🇰🇿",
+    USD: "$", EUR: "€", GBP: "£", CNY: "¥",
+    RUB: "₽", JPY: "¥", KRW: "₩", CAD: "$",
+    AUD: "$", NZD: "$", HKD: "$", SGD: "$",
+    CHF: "₣", INR: "₹", KZT: "₸",
   };
 
   function injectStyles() {
